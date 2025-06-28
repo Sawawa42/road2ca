@@ -1,0 +1,54 @@
+CREATE DATABASE IF NOT EXISTS `road2ca` DEFAULT CHARACTER SET utf8mb4;
+USE `road2ca`;
+
+SET CHARSET utf8mb4;
+
+-- 設定情報を格納するテーブル
+CREATE TABLE IF NOT EXISTS `road2ca`.`settings` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(128) NOT NULL,
+  `value` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+);
+
+-- ユーザー情報を格納するテーブル
+CREATE TABLE IF NOT EXISTS `road2ca`.`users` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(128) NOT NULL,
+    `highscore` INT NOT NULL DEFAULT 0,
+    `coin` INT NOT NULL DEFAULT 0,
+    `token` VARCHAR(128) NOT NULL,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+);
+
+-- アイテム情報を格納するテーブル
+CREATE TABLE IF NOT EXISTS `road2ca`.`items` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(128) NOT NULL,
+    `rarity` TINYINT NOT NULL DEFAULT 0,
+    `weight` INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`)
+);
+
+-- ユーザの持つアイテム情報を格納する中間テーブル
+CREATE TABLE IF NOT EXISTS `road2ca`.`collections` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `userId` INT NOT NULL DEFAULT 0,
+    `itemId` INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`userId`) REFERENCES `road2ca`.`users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`itemId`) REFERENCES `road2ca`.`items`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ユーザのスコア(ランキング)を格納するテーブル
+CREATE TABLE IF NOT EXISTS `road2ca`.`ranking` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `userId` INT NOT NULL DEFAULT 0,
+    `score` INT NOT NULL DEFAULT 0,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`userId`) REFERENCES `road2ca`.`users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
