@@ -13,7 +13,7 @@ const (
 )
 
 // HandleSettingGet ゲーム設定情報取得処理
-func HandleSettingGet() minigin.HandlerFunc {
+func (h *Handler) HandleSettingGet() minigin.HandlerFunc {
 	return func(c *minigin.Context) {
 		data, err := json.Marshal(&settingGetResponse{
 			GachaCoinConsumption: GachaCoinConsumption,

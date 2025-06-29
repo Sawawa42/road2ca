@@ -24,6 +24,9 @@ type Context struct {
 type Engine struct {
 	*RouterGroup
 
+	// map[string]1個目: "/user/create"のようなパス
+	// map[string]2個目: "POST"のようなHTTPメソッド
+	// []HandlerFunc: そのルートに適用されるミドルウェアと最終的なハンドラ関数のスライス
 	trees map[string]map[string][]HandlerFunc
 }
 
@@ -111,9 +114,5 @@ func (g *RouterGroup) POST(relativePath string, handler HandlerFunc) {
 }
 
 func (e *Engine) Run(addr string) error {
-	err := http.ListenAndServe(addr, e)
-	if err != nil {
-		return err
-	}
-	return nil
+	return http.ListenAndServe(addr, e)
 }
