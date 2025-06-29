@@ -24,7 +24,7 @@ type Context struct {
 type Engine struct {
 	*RouterGroup
 
-	trees map[string][]HandlerFunc
+	trees map[string]map[string][]HandlerFunc
 }
 
 func (c *Context) Next() {
@@ -36,21 +36,33 @@ func (c *Context) Next() {
 
 func New() *Engine {
 	engine := &Engine{
-		trees: make(map[string][]HandlerFunc),
+		trees: make(map[string]map[string][]HandlerFunc),
 	}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	return engine
 }
 
 func (e *Engine) addRoute(method, relativePath string, handlers []HandlerFunc) {
-	key := method + "-" + relativePath
-	e.trees[key] = handlers
+	if e.trees[relativePath] == nil {
+		e.trees[relativePath] = make(map[string][]HandlerFunc)
+	}
+	e.trees[relativePath][method] = handlers 
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	key := r.Method + "-" + r.URL.Path
-	handlers, ok := e.trees[key]
+	path := r.URL.Path
+
+	pathHandlers, ok := e.trees[path]
 	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	methodHandlers, ok := pathHandlers[r.Method]
+	// ここでoptionsを考慮しないとCORS対応する前に404が返されてしまう
+	if !ok && r.Method == http.MethodOptions {
+		methodHandlers = e.RouterGroup.middlewares
+	} else if !ok {
 		http.NotFound(w, r)
 		return
 	}
@@ -58,7 +70,7 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := &Context{
 		Writer:   w,
 		Request:  r,
-		handlers: handlers,
+		handlers: methodHandlers,
 		index:    -1,
 	}
 
