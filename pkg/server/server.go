@@ -19,6 +19,8 @@ func Serve(addr string) {
 	/* ===== URLマッピングを行う ===== */
 	router.GET("/setting/get", handler.HandleSettingGet())
 
+	router.POST("/user/create", handler.HandleUserCreate())
+
 	// TODO: 認証を行うmiddlewareを実装する
 	// middlewareは pkg/http/middleware パッケージを利用する
 	// http.HandleFunc("/user/get",
