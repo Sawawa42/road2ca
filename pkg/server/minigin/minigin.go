@@ -1,0 +1,107 @@
+package minigin
+
+import (
+	"net/http"
+	"path"
+)
+
+type HandlerFunc func(*Context)
+
+type RouterGroup struct {
+	prefix      string
+	middlewares []HandlerFunc
+	parent      *RouterGroup
+	engine      *Engine
+}
+
+type Context struct {
+	Writer   http.ResponseWriter
+	Request  *http.Request
+	handlers []HandlerFunc
+	index    int
+}
+
+type Engine struct {
+	*RouterGroup
+
+	trees map[string][]HandlerFunc
+}
+
+func (c *Context) Next() {
+	c.index++
+	for ; c.index < len(c.handlers); c.index++ {
+		c.handlers[c.index](c)
+	}
+}
+
+func New() *Engine {
+	engine := &Engine{
+		trees: make(map[string][]HandlerFunc),
+	}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	return engine
+}
+
+func (e *Engine) addRoute(method, relativePath string, handlers []HandlerFunc) {
+	key := method + "-" + relativePath
+	e.trees[key] = handlers
+}
+
+func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	key := r.Method + "-" + r.URL.Path
+	handlers, ok := e.trees[key]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	c := &Context{
+		Writer:   w,
+		Request:  r,
+		handlers: handlers,
+		index:    -1,
+	}
+
+	c.Next()
+}
+
+func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
+	g.middlewares = append(g.middlewares, middlewares...)
+}
+
+func (g *RouterGroup) Group(prefix string) *RouterGroup {
+	newGroup := &RouterGroup{
+		prefix: g.prefix + prefix,
+		parent: g,
+		engine: g.engine,
+	}
+	return newGroup
+}
+
+func (g *RouterGroup) handle(method, relativePath string, handler HandlerFunc) {
+	absPath := path.Join(relativePath, g.prefix)
+	var handlers []HandlerFunc
+	group := g
+	for group != nil {
+		handlers = append(group.middlewares, handlers...)
+		group = group.parent
+	}
+	handlers = append(handlers, handler)
+	g.engine.addRoute(method, absPath, handlers)
+}
+
+func (g *RouterGroup) GET(relativePath string, handler HandlerFunc) {
+	g.handle(http.MethodGet, relativePath, handler)
+}
+
+func (g *RouterGroup) POST(relativePath string, handler HandlerFunc) {
+	g.handle(http.MethodPost, relativePath, handler)
+}
+
+func (e *Engine) Run(addr string) error {
+	err := http.ListenAndServe(addr, e)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -1,3 +1,3 @@
-module 42tokyo-road-to-dojo-go
+module road2ca
 
 go 1.17

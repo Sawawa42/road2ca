@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"road2ca/pkg/server/minigin"
 )
 
 const (
@@ -12,20 +13,23 @@ const (
 )
 
 // HandleSettingGet ゲーム設定情報取得処理
-func HandleSettingGet() http.HandlerFunc {
-	return func(writer http.ResponseWriter, request *http.Request) {
+func HandleSettingGet() minigin.HandlerFunc {
+	return func(c *minigin.Context) {
 		data, err := json.Marshal(&settingGetResponse{
 			GachaCoinConsumption: GachaCoinConsumption,
 		})
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			c.Writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		writer.Write(data)
+		c.Writer.Header().Set("Content-Type", "application/json")
+		c.Writer.Write(data)
+		c.Next()
 	}
 }
 
 type settingGetResponse struct {
 	GachaCoinConsumption int32 `json:"gachaCoinConsumption"`
 }
+
