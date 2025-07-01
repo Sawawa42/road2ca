@@ -11,11 +11,11 @@ func Authenticate(c *minigin.Context) {
 	token := c.Request.Header.Get("x-token")
 	if len(token) < 32 { // TODO: 条件を検討する
 		c.Writer.WriteHeader(http.StatusUnauthorized)
-		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
 		return
 	}
 
-	// TODO: implement authentication logic here
+	// TODO: ここのロジックは後で自分で考える
 
+	// 認証成功で次へ
 	c.Next()
 }

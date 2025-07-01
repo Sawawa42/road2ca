@@ -32,7 +32,7 @@ type Engine struct {
 
 func (c *Context) Next() {
 	c.index++
-	for ; c.index < len(c.handlers); c.index++ {
+	if (c.index < len(c.handlers)) {
 		c.handlers[c.index](c)
 	}
 }
