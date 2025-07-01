@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"road2ca/pkg/server/minigin"
 	"road2ca/internal/model"
+	"road2ca/pkg/contextKey"
 )
 
 type UserCreateRequest struct {
@@ -51,11 +52,15 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 }
 
 func (h *Handler) HandleUserGet(c *minigin.Context) {
-	// 認証ミドルウェアでユーザIDをContextに保存しているかテスト
-	type contextKey string
-	const tokenKey contextKey = "token"
-	token := c.Request.Context().Value(tokenKey).( string )
-	log.Printf("User token found in context: %s", token)
+	token, ok := c.Request.Context().Value(contextkey.AuthToken).(string)
+	if !ok {
+		// 仮
+		log.Println("No token found in context")
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
+		return
+	}
+	log.Printf("HandleUserGet called with token: %s", token)
 	
 	// 仮で固定データを返す
 	user := &model.User{

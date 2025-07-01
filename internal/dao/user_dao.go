@@ -33,10 +33,10 @@ func (dao *userDAOImpl) Create(user *model.User) (int64, error) {
 }
 
 func (dao *userDAOImpl) GetByToken(token string) (*model.User, error) {
-	query := "SELECT id, name, highscore, coin FROM users WHERE token = ?"
+	query := "SELECT id, name, highscore, coin, token FROM users WHERE token = ?"
 	row := dao.db.QueryRow(query, token)
 	user := &model.User{}
-	err := row.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin)
+	err := row.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin, &user.Token)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil // ユーザが存在しない場合はnilを返す

@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"net/http"
-	"road2ca/pkg/server/minigin"
-	"log"
 	"context"
+	"log"
+	"net/http"
+	"road2ca/pkg/contextKey"
+	"road2ca/pkg/server/minigin"
 )
 
 // Authenticate ユーザ認証を行ってContextへユーザID情報を保存する
@@ -31,11 +32,14 @@ func (m *Middleware) Authenticate(c *minigin.Context) {
 	}
 
 	// ユーザIDをContextに保存
-	type contextKey string
-	const tokenKey contextKey = "token" // should not use built-in type string as key for value; define your own type to avoid collisions (SA1029)go-staticcheck
-	ctx := context.WithValue(c.Request.Context(), tokenKey, user.Token)
-	c.Request = c.Request.WithContext(ctx)
+	ctx := c.Request.Context()
+	ctx = SetToken(ctx, user.Token)
+	c.Request = c.Request.Clone(ctx)
 
 	// 認証成功で次へ
 	c.Next()
+}
+
+func SetToken(parents context.Context, token string) context.Context {
+	return context.WithValue(parents, contextkey.AuthToken, token)
 }
