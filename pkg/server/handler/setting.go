@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"road2ca/pkg/server/minigin"
+	"database/sql"
 )
 
 const (
@@ -13,7 +14,7 @@ const (
 )
 
 // HandleSettingGet ゲーム設定情報取得処理
-func (h *Handler) HandleSettingGet() minigin.HandlerFunc {
+func HandleSettingGet(db *sql.DB) minigin.HandlerFunc {
 	return func(c *minigin.Context) {
 		data, err := json.Marshal(&settingGetResponse{
 			GachaCoinConsumption: GachaCoinConsumption,

@@ -22,8 +22,6 @@ func Serve(addr string) {
 	if err := db.Ping(); err != nil {
 		log.Fatalf("Failed to ping database: %+v", err)
 	}
-
-	h := handler.New(db)
 	// このあたりここまで
 
 	router := minigin.New()
@@ -32,9 +30,9 @@ func Serve(addr string) {
 	router.Use(middleware.CommonConfig())
 
 	/* ===== URLマッピングを行う ===== */
-	router.GET("/setting/get", h.HandleSettingGet())
+	router.GET("/setting/get", handler.HandleSettingGet(db))
 
-	router.POST("/user/create", h.HandleUserCreate())
+	router.POST("/user/create", handler.HandleUserCreate(db))
 
 	// TODO: 認証を行うmiddlewareを実装する
 	// middlewareは pkg/http/middleware パッケージを利用する

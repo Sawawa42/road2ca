@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"road2ca/pkg/server/minigin"
+	"database/sql"
 )
 
 type UserCreateRequest struct {
@@ -12,7 +13,7 @@ type UserCreateRequest struct {
 }
 
 // HandleUserCreate ユーザ登録処理
-func (h *Handler) HandleUserCreate() minigin.HandlerFunc {
+func HandleUserCreate(db *sql.DB) minigin.HandlerFunc {
 	return func(c *minigin.Context) {
 		var req UserCreateRequest
 
@@ -32,7 +33,7 @@ func (h *Handler) HandleUserCreate() minigin.HandlerFunc {
 		// TODO: tokenの生成処理を実装
 
 		// TODO: DAOの実装
-		_, err := h.db.Exec("INSERT INTO users (name, token) VALUES (?, ?)", req.Name, "example_token")
+		_, err := db.Exec("INSERT INTO users (name, token) VALUES (?, ?)", req.Name, "example_token")
 		if err != nil {
 			log.Printf("Failed to create user: %v", err)
 			c.Writer.WriteHeader(http.StatusInternalServerError)
