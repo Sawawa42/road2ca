@@ -51,6 +51,12 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 }
 
 func (h *Handler) HandleUserGet(c *minigin.Context) {
+	// 認証ミドルウェアでユーザIDをContextに保存しているかテスト
+	type contextKey string
+	const tokenKey contextKey = "token"
+	token := c.Request.Context().Value(tokenKey).( string )
+	log.Printf("User token found in context: %s", token)
+	
 	// 仮で固定データを返す
 	user := &model.User{
 		ID:    1,
