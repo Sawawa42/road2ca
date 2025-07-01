@@ -94,7 +94,7 @@ func (g *RouterGroup) Group(prefix string) *RouterGroup {
 }
 
 func (g *RouterGroup) handle(method, relativePath string, handler HandlerFunc) {
-	absPath := path.Join(relativePath, g.prefix)
+	absPath := path.Join(g.prefix, relativePath)
 	var handlers []HandlerFunc
 	group := g
 	for group != nil {
