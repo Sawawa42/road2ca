@@ -38,6 +38,13 @@ func Serve(addr string) {
 
 	router.POST("/user/create", h.HandleUserCreate)
 
+	userGroup := router.Group("/user")
+	{
+		userGroup.Use(middleware.Authenticate) // 認証ミドルウェアを適用
+		userGroup.GET("/get", h.HandleUserGet)
+		// userGroup.POST("/update", h.HandleUserUpdate) // ex04
+	}
+
 	// TODO: 認証を行うmiddlewareを実装する
 	// middlewareは pkg/http/middleware パッケージを利用する
 	// http.HandleFunc("/user/get",

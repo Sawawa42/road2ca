@@ -49,3 +49,25 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 	c.Writer.Write([]byte(`{"token": "` + token + `"}`))
 	c.Next()
 }
+
+func (h *Handler) HandleUserGet(c *minigin.Context) {
+	// 仮で固定データを返す
+	user := &model.User{
+		ID:    1,
+		Name:  "John Doe",
+		HighScore: 1000,
+		Coin: 500,
+	}
+	
+	response, err := json.Marshal(user)
+	if err != nil {
+		log.Printf("Failed to marshal user data: %v", err)
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.Header().Set("Content-Type", "application/json")
+		c.Writer.Write([]byte(`{"error": "Internal server error"}`))
+		return
+	}
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.Write(response)
+	c.Next()
+}
