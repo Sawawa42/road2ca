@@ -2,16 +2,41 @@ package server
 
 import (
 	"log"
-	"net/http"
-
-	"42tokyo-road-to-dojo-go/pkg/server/handler"
+	"road2ca/pkg/http/middleware"
+	"road2ca/pkg/server/handler"
+	"road2ca/pkg/server/minigin"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Serve HTTPサーバを起動する
 func Serve(addr string) {
+	// TODO: このあたりをまとめる
+	db, err := sql.Open("mysql", "root:ca-tech-dojo@tcp(localhost:3306)/road2ca?parseTime=true")
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %+v", err)
+	}
+	defer db.Close()
+
+	// DB接続の確認
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %+v", err)
+	}
+	// このあたりここまで
+
+	// ハンドラの初期化
+	h := handler.New(db)
+
+	// ルーターの初期化
+	router := minigin.New()
+
+	// CORS対応など共通の設定を適用
+	router.Use(middleware.CommonConfig())
 
 	/* ===== URLマッピングを行う ===== */
-	http.HandleFunc("/setting/get", get(handler.HandleSettingGet()))
+	router.GET("/setting/get", h.HandleSettingGet)
+
+	router.POST("/user/create", h.HandleUserCreate)
 
 	// TODO: 認証を行うmiddlewareを実装する
 	// middlewareは pkg/http/middleware パッケージを利用する
@@ -20,43 +45,8 @@ func Serve(addr string) {
 
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
-	err := http.ListenAndServe(addr, nil)
+	err = router.Run(addr) 
 	if err != nil {
-		log.Fatalf("Listen and serve failed. %+v", err)
-	}
-}
-
-// get GETリクエストを処理する
-func get(apiFunc http.HandlerFunc) http.HandlerFunc {
-	return httpMethod(apiFunc, http.MethodGet)
-}
-
-// post POSTリクエストを処理する
-func post(apiFunc http.HandlerFunc) http.HandlerFunc {
-	return httpMethod(apiFunc, http.MethodPost)
-}
-
-// httpMethod 指定したHTTPメソッドでAPIの処理を実行する
-func httpMethod(apiFunc http.HandlerFunc, method string) http.HandlerFunc {
-	return func(writer http.ResponseWriter, request *http.Request) {
-
-		// CORS対応
-		writer.Header().Add("Access-Control-Allow-Origin", "*")
-		writer.Header().Add("Access-Control-Allow-Headers", "Content-Type,Accept,Origin,x-token")
-
-		// プリフライトリクエストは処理を通さない
-		if request.Method == http.MethodOptions {
-			return
-		}
-		// 指定のHTTPメソッドでない場合はエラー
-		if request.Method != method {
-			writer.WriteHeader(http.StatusMethodNotAllowed)
-			writer.Write([]byte("Method Not Allowed"))
-			return
-		}
-
-		// 共通のレスポンスヘッダを設定
-		writer.Header().Add("Content-Type", "application/json")
-		apiFunc(writer, request)
+		log.Fatalf("Server failed to start on %s: %+v", addr, err)
 	}
 }

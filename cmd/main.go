@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"42tokyo-road-to-dojo-go/pkg/server"
+	"road2ca/pkg/server"
 )
 
 var (
