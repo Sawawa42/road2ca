@@ -24,15 +24,19 @@ func Serve(addr string) {
 	}
 	// このあたりここまで
 
+	// ハンドラの初期化
+	h := handler.New(db)
+
+	// ルーターの初期化
 	router := minigin.New()
 
 	// CORS対応など共通の設定を適用
 	router.Use(middleware.CommonConfig())
 
 	/* ===== URLマッピングを行う ===== */
-	router.GET("/setting/get", handler.HandleSettingGet(db))
+	router.GET("/setting/get", h.HandleSettingGet)
 
-	router.POST("/user/create", handler.HandleUserCreate(db))
+	router.POST("/user/create", h.HandleUserCreate)
 
 	// TODO: 認証を行うmiddlewareを実装する
 	// middlewareは pkg/http/middleware パッケージを利用する
