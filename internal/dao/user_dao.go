@@ -8,6 +8,7 @@ import (
 
 type UserDAO interface {
 	Create(user *model.User) (int64, error)
+	GetByToken(token string) (*model.User, error)
 }
 
 type userDAOImpl struct {
@@ -29,4 +30,18 @@ func (dao *userDAOImpl) Create(user *model.User) (int64, error) {
 		return 0, fmt.Errorf("failed to get last insert ID: %w", err)
 	}
 	return userID, nil
+}
+
+func (dao *userDAOImpl) GetByToken(token string) (*model.User, error) {
+	query := "SELECT id, name, highscore, coin FROM users WHERE token = ?"
+	row := dao.db.QueryRow(query, token)
+	user := &model.User{}
+	err := row.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // ユーザが存在しない場合はnilを返す
+		}
+		return nil, fmt.Errorf("failed to get user by token: %w", err)
+	}
+	return user, nil
 }

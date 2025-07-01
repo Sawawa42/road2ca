@@ -27,6 +27,9 @@ func Serve(addr string) {
 	// ハンドラの初期化
 	h := handler.New(db)
 
+	// ミドルウェアの初期化
+	m := middleware.NewMiddleware(db)
+
 	// ルーターの初期化
 	router := minigin.New()
 
@@ -40,7 +43,7 @@ func Serve(addr string) {
 
 	userGroup := router.Group("/user")
 	{
-		userGroup.Use(middleware.Authenticate) // 認証ミドルウェアを適用
+		userGroup.Use(m.Authenticate) // 認証ミドルウェアを適用
 		userGroup.GET("/get", h.HandleUserGet)
 		// userGroup.POST("/update", h.HandleUserUpdate) // ex04
 	}
