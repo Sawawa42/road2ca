@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"crypto/md5"
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"road2ca/pkg/server/minigin"
-	"database/sql"
 )
 
 type UserCreateRequest struct {
@@ -30,10 +32,11 @@ func HandleUserCreate(db *sql.DB) minigin.HandlerFunc {
 			return
 		}
 
-		// TODO: tokenの生成処理を実装
+		// 簡易的にmd5ハッシュをトークンとして使用
+		token := fmt.Sprintf("%x", md5.Sum([]byte(req.Name)))
 
 		// TODO: DAOの実装
-		_, err := db.Exec("INSERT INTO users (name, token) VALUES (?, ?)", req.Name, "example_token")
+		_, err := db.Exec("INSERT INTO users (name, token) VALUES (?, ?)", req.Name, token)
 		if err != nil {
 			log.Printf("Failed to create user: %v", err)
 			c.Writer.WriteHeader(http.StatusInternalServerError)
@@ -42,7 +45,7 @@ func HandleUserCreate(db *sql.DB) minigin.HandlerFunc {
 		}
 
 		c.Writer.WriteHeader(http.StatusOK)
-		c.Writer.Write([]byte(`{"token": "example_token"}`))
+		c.Writer.Write([]byte(`{"token": "` + token + `"}`))
 		c.Next()
 	}
 }
