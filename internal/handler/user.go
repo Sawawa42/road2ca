@@ -1,0 +1,59 @@
+package handler
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"road2ca/pkg/minigin"
+	"road2ca/internal/service"
+)
+
+type UserHandler interface {
+	HandleUserCreate(c *minigin.Context)
+	HandleUserGet(c *minigin.Context)
+}
+
+type userHandler struct {
+	userService service.UserService
+}
+
+func NewUserHandler(userService service.UserService) UserHandler {
+	return &userHandler{
+		userService: userService,
+	}
+}
+
+// HandleUserCreate ユーザ登録処理
+func (h *userHandler) HandleUserCreate(c *minigin.Context) {
+	var req service.UserCreateRequestDTO
+
+	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		http.Error(c.Writer, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.Name == "" {
+		http.Error(c.Writer, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.userService.CreateUser(req.Name)
+	if err != nil {
+		log.Printf("Failed to HandleUserCreate: %v", err)
+		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+// HandleUserGet ユーザ情報取得処理
+func (h *userHandler) HandleUserGet(c *minigin.Context) {
+	res, err := h.userService.GetUser(c)
+	if err != nil {
+		log.Printf("Failed to HandleUserGet: %v", err)
+		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
