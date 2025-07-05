@@ -48,7 +48,6 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Writer.Write([]byte(`{"token": "` + token + `"}`))
-	c.Next()
 }
 
 // HandleUserGet ユーザ情報取得処理
@@ -70,5 +69,4 @@ func (h *Handler) HandleUserGet(c *minigin.Context) {
 		return
 	}
 	c.Writer.Write(response)
-	c.Next()
 }

@@ -24,7 +24,6 @@ func (h *Handler) HandleSettingGet(c *minigin.Context) {
 	}
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.Write(data)
-	c.Next()
 }
 
 type settingGetResponse struct {
