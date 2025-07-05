@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"database/sql"
-	"road2ca/internal/dao"
+	"road2ca/pkg/dao"
 )
 
 type Middleware struct {

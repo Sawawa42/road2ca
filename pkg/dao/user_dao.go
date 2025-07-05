@@ -3,7 +3,7 @@ package dao
 import (
 	"database/sql"
 	"fmt"
-	"road2ca/internal/model"
+	"road2ca/pkg/model"
 )
 
 type UserDAO interface {

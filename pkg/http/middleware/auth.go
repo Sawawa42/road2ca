@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"road2ca/internal/model"
 	"road2ca/pkg/constants"
 	"road2ca/pkg/minigin"
+	"road2ca/pkg/model"
 )
 
 // Authenticate ユーザ認証を行ってContextへユーザID情報を保存する

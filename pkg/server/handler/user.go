@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"road2ca/internal/model"
 	"road2ca/pkg/constants"
 	"road2ca/pkg/minigin"
+	"road2ca/pkg/model"
 )
 
 type UserCreateRequest struct {
