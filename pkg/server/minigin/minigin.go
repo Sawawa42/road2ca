@@ -1,6 +1,8 @@
 package minigin
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 	"path"
 )
@@ -35,6 +37,18 @@ func (c *Context) Next() {
 	if c.index < len(c.handlers) {
 		c.handlers[c.index](c)
 	}
+}
+
+func (c *Context) JSON(code int, obj any) {
+	json, err := json.Marshal(obj)
+	if err != nil {
+		log.Printf("Failed to json.Marshal: %v", err)
+		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteHeader(code)
+	c.Writer.Write(json)
 }
 
 func New() *Engine {

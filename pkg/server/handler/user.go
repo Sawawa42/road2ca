@@ -20,15 +20,12 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 	var req UserCreateRequest
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
-		log.Printf("Failed to decode request body: %v", err)
-		c.Writer.WriteHeader(http.StatusBadRequest)
-		c.Writer.Write([]byte(`{"error": "Invalid request"}`))
+		http.Error(c.Writer, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	if req.Name == "" {
-		c.Writer.WriteHeader(http.StatusBadRequest)
-		c.Writer.Write([]byte(`{"error": "Invalid request"}`))
+		http.Error(c.Writer, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -40,33 +37,29 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 		Token: token,
 	})
 	if err != nil {
-		log.Printf("Failed to create user: %v", err)
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		c.Writer.Write([]byte(`{"error": "Internal server error"}`))
+		log.Printf("Failed to h.userDAO.Create: %v", err)
+		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	c.Writer.WriteHeader(http.StatusOK)
-	c.Writer.Write([]byte(`{"token": "` + token + `"}`))
+	c.JSON(http.StatusOK, &model.UserCreateResponse{
+		Token: token,
+	})
 }
 
 // HandleUserGet ユーザ情報取得処理
-// 認証時にContextに保存したユーザ情報を取得して返却する
 func (h *Handler) HandleUserGet(c *minigin.Context) {
 	user, ok := c.Request.Context().Value(contextkey.ContextKey).(*model.User)
 	if !ok {
-		log.Println("No token found in context")
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
+		log.Println("Failed to c.Request.Context().Value(contextkey.ContextKey).(*model.User)")
+		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	response, err := json.Marshal(user)
-	if err != nil {
-		log.Printf("Failed to marshal user data: %v", err)
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		c.Writer.Write([]byte(`{"error": "Internal server error"}`))
-		return
-	}
-	c.Writer.Write(response)
+	c.JSON(http.StatusOK, &model.UserGetResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		HighScore: user.HighScore,
+		Coin:      user.Coin,
+	})
 }

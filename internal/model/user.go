@@ -15,3 +15,10 @@ type UserCreateRequest struct {
 type UserCreateResponse struct {
 	Token string `json:"token"`
 }
+
+type UserGetResponse struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	HighScore int    `json:"highScore"`
+	Coin      int    `json:"coin"`
+}
