@@ -29,4 +29,3 @@ func (h *Handler) HandleSettingGet(c *minigin.Context) {
 type settingGetResponse struct {
 	GachaCoinConsumption int32 `json:"gachaCoinConsumption"`
 }
-

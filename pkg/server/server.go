@@ -1,12 +1,12 @@
 package server
 
 import (
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"road2ca/pkg/http/middleware"
 	"road2ca/pkg/server/handler"
 	"road2ca/pkg/server/minigin"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 // Serve HTTPサーバを起動する
@@ -55,7 +55,7 @@ func Serve(addr string) {
 
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
-	err = router.Run(addr) 
+	err = router.Run(addr)
 	if err != nil {
 		log.Fatalf("Server failed to start on %s: %+v", addr, err)
 	}

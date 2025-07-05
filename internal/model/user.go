@@ -1,11 +1,11 @@
 package model
 
 type User struct {
-	ID			int
-	Name		string
-	HighScore	int
-	Coin		int
-	Token		string
+	ID        int
+	Name      string
+	HighScore int
+	Coin      int
+	Token     string
 }
 
 type UserCreateRequest struct {

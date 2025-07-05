@@ -4,16 +4,16 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"road2ca/internal/model"
 	"road2ca/pkg/contextKey"
 	"road2ca/pkg/server/minigin"
-	"road2ca/internal/model"
 )
 
 // Authenticate ユーザ認証を行ってContextへユーザID情報を保存する
 func (m *Middleware) Authenticate(c *minigin.Context) {
 	// 認証情報を取得
 	token := c.Request.Header.Get("x-token")
-	if (len(token) < 1) {
+	if len(token) < 1 {
 		c.Writer.WriteHeader(http.StatusUnauthorized)
 		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
 		return
@@ -21,8 +21,8 @@ func (m *Middleware) Authenticate(c *minigin.Context) {
 
 	// ユーザ情報をDBから取得
 	user, err := m.userDAO.GetByToken(token)
-	if (user == nil || err != nil) {
-		if (err != nil) {
+	if user == nil || err != nil {
+		if err != nil {
 			log.Println("Error getting user by token:", err)
 		} else {
 			log.Println("User not found for token:", token)

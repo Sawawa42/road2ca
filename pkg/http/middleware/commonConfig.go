@@ -22,4 +22,3 @@ func CommonConfig() minigin.HandlerFunc {
 		c.Next()
 	}
 }
-

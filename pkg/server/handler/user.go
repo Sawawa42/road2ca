@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"road2ca/pkg/server/minigin"
 	"road2ca/internal/model"
 	"road2ca/pkg/contextKey"
+	"road2ca/pkg/server/minigin"
 )
 
 type UserCreateRequest struct {
@@ -60,7 +60,7 @@ func (h *Handler) HandleUserGet(c *minigin.Context) {
 		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
 		return
 	}
-	
+
 	response, err := json.Marshal(user)
 	if err != nil {
 		log.Printf("Failed to marshal user data: %v", err)

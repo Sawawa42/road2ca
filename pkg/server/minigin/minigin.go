@@ -32,7 +32,7 @@ type Engine struct {
 
 func (c *Context) Next() {
 	c.index++
-	if (c.index < len(c.handlers)) {
+	if c.index < len(c.handlers) {
 		c.handlers[c.index](c)
 	}
 }
@@ -49,7 +49,7 @@ func (e *Engine) addRoute(method, relativePath string, handlers []HandlerFunc) {
 	if e.trees[relativePath] == nil {
 		e.trees[relativePath] = make(map[string][]HandlerFunc)
 	}
-	e.trees[relativePath][method] = handlers 
+	e.trees[relativePath][method] = handlers
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
