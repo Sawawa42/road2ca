@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"road2ca/pkg/server/minigin"
+	"road2ca/pkg/minigin"
 )
 
 func CommonConfig() minigin.HandlerFunc {

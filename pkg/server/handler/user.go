@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"road2ca/internal/model"
 	"road2ca/pkg/constants"
-	"road2ca/pkg/server/minigin"
+	"road2ca/pkg/minigin"
 )
 
 type UserCreateRequest struct {

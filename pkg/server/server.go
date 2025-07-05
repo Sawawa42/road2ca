@@ -2,11 +2,12 @@ package server
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"road2ca/pkg/http/middleware"
+	"road2ca/pkg/minigin"
 	"road2ca/pkg/server/handler"
-	"road2ca/pkg/server/minigin"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Serve HTTPサーバを起動する
