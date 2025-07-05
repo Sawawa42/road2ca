@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"road2ca/internal/model"
-	"road2ca/pkg/contextKey"
+	"road2ca/pkg/constants"
 	"road2ca/pkg/server/minigin"
 )
 
@@ -14,8 +14,7 @@ func (m *Middleware) Authenticate(c *minigin.Context) {
 	// 認証情報を取得
 	token := c.Request.Header.Get("x-token")
 	if len(token) < 1 {
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
+		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -27,8 +26,7 @@ func (m *Middleware) Authenticate(c *minigin.Context) {
 		} else {
 			log.Println("User not found for token:", token)
 		}
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
+		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -45,5 +43,5 @@ func setUserToContext(parents context.Context, user *model.User) context.Context
 	if user == nil {
 		return parents
 	}
-	return context.WithValue(parents, contextkey.ContextKey, user)
+	return context.WithValue(parents, constants.ContextKey, user)
 }

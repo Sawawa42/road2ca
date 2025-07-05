@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"road2ca/internal/model"
-	"road2ca/pkg/contextKey"
+	"road2ca/pkg/constants"
 	"road2ca/pkg/server/minigin"
 )
 
@@ -37,7 +37,7 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 		Token: token,
 	})
 	if err != nil {
-		log.Printf("Failed to h.userDAO.Create: %v", err)
+		log.Printf("Failed to HandleUserCreate: %v", err)
 		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -49,9 +49,9 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 
 // HandleUserGet ユーザ情報取得処理
 func (h *Handler) HandleUserGet(c *minigin.Context) {
-	user, ok := c.Request.Context().Value(contextkey.ContextKey).(*model.User)
+	user, ok := c.Request.Context().Value(constants.ContextKey).(*model.User)
 	if !ok {
-		log.Println("Failed to c.Request.Context().Value(contextkey.ContextKey).(*model.User)")
+		log.Println("Failed to HandleUserGet: user not found in context")
 		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
