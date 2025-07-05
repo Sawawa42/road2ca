@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"road2ca/pkg/contextKey"
 	"road2ca/pkg/server/minigin"
+	"road2ca/internal/model"
 )
 
 // Authenticate ユーザ認証を行ってContextへユーザID情報を保存する
@@ -31,15 +32,18 @@ func (m *Middleware) Authenticate(c *minigin.Context) {
 		return
 	}
 
-	// ユーザIDをContextに保存
+	// ユーザ情報をContextに保存
 	ctx := c.Request.Context()
-	ctx = SetToken(ctx, user.Token)
+	ctx = setUserToContext(ctx, user)
 	c.Request = c.Request.Clone(ctx)
 
 	// 認証成功で次へ
 	c.Next()
 }
 
-func SetToken(parents context.Context, token string) context.Context {
-	return context.WithValue(parents, contextkey.AuthToken, token)
+func setUserToContext(parents context.Context, user *model.User) context.Context {
+	if user == nil {
+		return parents
+	}
+	return context.WithValue(parents, contextkey.ContextKey, user)
 }

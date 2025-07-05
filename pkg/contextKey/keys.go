@@ -1,5 +1,6 @@
 package contextkey
 
-type ContextKey string
+type contextKeyType string
 
-const AuthToken ContextKey = "authToken"
+const ContextKey contextKeyType = "contextKey"
+

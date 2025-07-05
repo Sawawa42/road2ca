@@ -51,34 +51,24 @@ func (h *Handler) HandleUserCreate(c *minigin.Context) {
 	c.Next()
 }
 
+// HandleUserGet ユーザ情報取得処理
+// 認証時にContextに保存したユーザ情報を取得して返却する
 func (h *Handler) HandleUserGet(c *minigin.Context) {
-	token, ok := c.Request.Context().Value(contextkey.AuthToken).(string)
+	user, ok := c.Request.Context().Value(contextkey.ContextKey).(*model.User)
 	if !ok {
-		// 仮
 		log.Println("No token found in context")
 		c.Writer.WriteHeader(http.StatusUnauthorized)
 		c.Writer.Write([]byte(`{"error": "Unauthorized"}`))
 		return
-	}
-	log.Printf("HandleUserGet called with token: %s", token)
-	
-	// 仮で固定データを返す
-	user := &model.User{
-		ID:    1,
-		Name:  "John Doe",
-		HighScore: 1000,
-		Coin: 500,
 	}
 	
 	response, err := json.Marshal(user)
 	if err != nil {
 		log.Printf("Failed to marshal user data: %v", err)
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-		c.Writer.Header().Set("Content-Type", "application/json")
 		c.Writer.Write([]byte(`{"error": "Internal server error"}`))
 		return
 	}
-	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.Write(response)
 	c.Next()
 }
