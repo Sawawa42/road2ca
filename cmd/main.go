@@ -34,7 +34,7 @@ func main() {
 	// Redis接続の初期化
 	rdb := initRedis()
 
-	h, m := initServer(db)
+	h, m := initServer(db, rdb)
 
 	server.Serve(addr, h, m)
 }
@@ -58,18 +58,21 @@ func initMySQL() *sql.DB {
 
 // initRedis Redis接続の初期化
 func initRedis() *redis.Client {
-	addr := ""
+	addr := "localhost:6379"
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
 	})
+	if rdb == nil {
+		log.Fatal("Failed to create Redis client")
+	}
 	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %+v", err)
 	}
 	return rdb
 }
 
-func initServer(db *sql.DB) (*handler.Handler, *middleware.Middleware) {
-	r := repository.New(db)
+func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware) {
+	r := repository.New(db, rdb)
 	s := service.New(r)
 	h := handler.New(s)
 	m := middleware.New(s)
