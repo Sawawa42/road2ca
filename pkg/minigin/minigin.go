@@ -1,6 +1,8 @@
 package minigin
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 	"path"
 )
@@ -32,9 +34,23 @@ type Engine struct {
 
 func (c *Context) Next() {
 	c.index++
-	for ; c.index < len(c.handlers); c.index++ {
+	if c.index < len(c.handlers) {
 		c.handlers[c.index](c)
 	}
+}
+
+type H map[string]any
+
+func (c *Context) JSON(code int, obj any) {
+	json, err := json.Marshal(obj)
+	if err != nil {
+		log.Printf("Failed to json.Marshal: %v", err)
+		c.JSON(http.StatusInternalServerError, H{"error": "Internal server error"})
+		return
+	}
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteHeader(code)
+	c.Writer.Write(json)
 }
 
 func New() *Engine {
@@ -49,7 +65,7 @@ func (e *Engine) addRoute(method, relativePath string, handlers []HandlerFunc) {
 	if e.trees[relativePath] == nil {
 		e.trees[relativePath] = make(map[string][]HandlerFunc)
 	}
-	e.trees[relativePath][method] = handlers 
+	e.trees[relativePath][method] = handlers
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +110,7 @@ func (g *RouterGroup) Group(prefix string) *RouterGroup {
 }
 
 func (g *RouterGroup) handle(method, relativePath string, handler HandlerFunc) {
-	absPath := path.Join(relativePath, g.prefix)
+	absPath := path.Join(g.prefix, relativePath)
 	var handlers []HandlerFunc
 	group := g
 	for group != nil {
