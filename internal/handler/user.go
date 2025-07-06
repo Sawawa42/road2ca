@@ -11,6 +11,7 @@ import (
 type UserHandler interface {
 	HandleUserCreate(c *minigin.Context)
 	HandleUserGet(c *minigin.Context)
+	HandleUserUpdate(c *minigin.Context)
 }
 
 type userHandler struct {
@@ -64,4 +65,33 @@ func (h *userHandler) HandleUserGet(c *minigin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
+}
+
+// HandleUserUpdate ユーザ情報更新処理
+func (h *userHandler) HandleUserUpdate(c *minigin.Context) {
+	var req service.UserUpdateRequestDTO
+
+	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	if req.Name == "" {
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Name is required",
+		})
+		return
+	}
+
+	if err := h.userService.UpdateUser(c, req.Name); err != nil {
+		log.Printf("ERROR: %v", err)
+		c.JSON(http.StatusInternalServerError, minigin.H{
+			"error": "Internal server error",
+		})
+		return
+	}
+
+	c.Writer.WriteHeader(http.StatusOK)
 }
