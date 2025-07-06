@@ -34,7 +34,10 @@ func main() {
 	// Redis接続の初期化
 	rdb := initRedis()
 
-	h, m := initServer(db, rdb)
+	h, m, err := initServer(db, rdb)
+	if err != nil {
+		log.Fatalf("Failed to initialize server: %+v", err)
+	}
 
 	server.Serve(addr, h, m)
 }
@@ -71,11 +74,16 @@ func initRedis() *redis.Client {
 	return rdb
 }
 
-func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware) {
+func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
 	r := repository.New(db, rdb)
 	s := service.New(r)
 	h := handler.New(s)
 	m := middleware.New(s)
 
-	return h, m
+	// キャッシュの初期化
+	if err := s.Item.CacheItems(); err != nil {
+		return nil, nil, err
+	}
+
+	return h, m, nil
 }

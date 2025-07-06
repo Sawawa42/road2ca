@@ -8,6 +8,7 @@ type Services struct {
 	User    UserService
 	Auth    AuthService
 	Setting SettingService
+	Item    ItemService
 }
 
 func New(repo *repository.Repositories) *Services {
@@ -15,5 +16,6 @@ func New(repo *repository.Repositories) *Services {
 		User:    NewUserService(repo.User),
 		Auth:    NewAuthService(repo.User),
 		Setting: NewSettingService(),
+		Item:    NewItemService(repo.Item),
 	}
 }

@@ -6,23 +6,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"database/sql"
 )
 
 type ItemRepository interface {
-	SaveAll(items []*entity.Item) error
-	FindByID(id int) (*entity.Item, error)
+	CacheAllToRedis(items []*entity.Item) error
+	FindByIdFromRedis(id int) (*entity.Item, error)
+	FindAllFromMySQL() ([]*entity.Item, error)
 }
 
 type itemRepository struct {
+	db  *sql.DB
 	rdb *redis.Client
 }
 
-func NewItemRepository(rdb *redis.Client) ItemRepository {
-	return &itemRepository{rdb: rdb}
+func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepository {
+	return &itemRepository{
+		db:  db,
+		rdb: rdb,
+	}
 }
 
-// SaveAll Redisにアイテム情報を保存する
-func (r *itemRepository) SaveAll(items []*entity.Item) error {
+// CacheAllToRedis Redisにアイテム情報を保存する
+func (r *itemRepository) CacheAllToRedis(items []*entity.Item) error {
 	pipe := r.rdb.Pipeline()
 	ctx := context.Background()
 	for _, item := range items {
@@ -40,8 +46,8 @@ func (r *itemRepository) SaveAll(items []*entity.Item) error {
 	return nil
 }
 
-// FindByID Redisからアイテム情報を取得する
-func (r *itemRepository) FindByID(id int) (*entity.Item, error) {
+// FindByIdFromRedis Redisからアイテム情報を取得する
+func (r *itemRepository) FindByIdFromRedis(id int) (*entity.Item, error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("item:%d", id)
 	val, err := r.rdb.Get(ctx, key).Result()
@@ -57,4 +63,23 @@ func (r *itemRepository) FindByID(id int) (*entity.Item, error) {
 		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 	}
 	return &item, nil
+}
+
+func (r *itemRepository) FindAllFromMySQL() ([]*entity.Item, error) {
+	query := "SELECT * FROM items"
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query items: %w", err)
+	}
+	defer rows.Close()
+	var items []*entity.Item
+	for rows.Next() {
+		var item entity.Item
+		if err := rows.Scan(&item.ID, &item.Name, &item.Rarity, &item.Weight); err != nil {
+			return nil, fmt.Errorf("failed to scan item: %w", err)
+		}
+		items = append(items, &item)
+	}
+
+	return items, nil
 }
