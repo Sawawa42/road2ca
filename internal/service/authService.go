@@ -24,11 +24,8 @@ func NewAuthService(userRepo repository.UserRepository) AuthService {
 
 func (s *authService) SaveTokenToContext(token string, c *minigin.Context) error {
 	user, err := s.userRepo.FindByToken(token)
-	if user == nil {
-		if err != nil {
-			return fmt.Errorf("error finding user by token: %w", err)
-		}
-		return fmt.Errorf("user not found for token: %s", token)
+	if err != nil {
+		return fmt.Errorf("internal server error: %w", err)
 	}
 
 	ctx := c.Request.Context()

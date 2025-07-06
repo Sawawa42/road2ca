@@ -33,7 +33,7 @@ func (m *authMiddleware) Authenticate(c *minigin.Context) {
 
 	err := m.authService.SaveTokenToContext(token, c)
 	if err != nil {
-		log.Printf("Authentication failed: %v", err)
+		log.Printf("ERROR: %v", err)
 		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
 		return
 	}

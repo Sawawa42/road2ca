@@ -58,7 +58,7 @@ func (s *userService) CreateUser(name string) (*UserCreateResponseDTO, error) {
 func (s *userService) GetUser(c *minigin.Context) (*UserDTO, error) {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
-		return nil, fmt.Errorf("user not found in context")
+		return nil, fmt.Errorf("failed to get user")
 	}
 
 	return &UserDTO{

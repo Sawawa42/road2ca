@@ -39,7 +39,7 @@ func (h *userHandler) HandleUserCreate(c *minigin.Context) {
 
 	res, err := h.userService.CreateUser(req.Name)
 	if err != nil {
-		log.Printf("Failed to HandleUserCreate: %v", err)
+		log.Printf("ERROR: %v", err)
 		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -50,7 +50,7 @@ func (h *userHandler) HandleUserCreate(c *minigin.Context) {
 func (h *userHandler) HandleUserGet(c *minigin.Context) {
 	res, err := h.userService.GetUser(c)
 	if err != nil {
-		log.Printf("Failed to HandleUserGet: %v", err)
+		log.Printf("ERROR: %v", err)
 		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
 		return
 	}
