@@ -28,7 +28,7 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 		userGroup.Use(m.Auth.Authenticate)
 
 		userGroup.GET("/get", h.User.HandleUserGet)
-		// userGroup.POST("/update", h.HandleUserUpdate) // ex04
+		userGroup.POST("/update", h.User.HandleUserUpdate)
 	}
 
 	/* ===== サーバの起動 ===== */

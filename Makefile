@@ -3,3 +3,9 @@ all:
 
 fmt:
 	go fmt ./...
+
+up:
+	docker compose up -d
+
+down:
+	docker compose down

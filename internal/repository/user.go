@@ -19,7 +19,12 @@ func NewUserRepository(db *sql.DB) UserRepository {
 }
 
 func (r *userRepository) Save(user *entity.User) error {
-	query := "INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)"
+	query := `
+		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+		name = VALUES(name),
+		highscore = VALUES(highscore),
+		coin = VALUES(coin)`
 	_, err := r.db.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
 	if err != nil {
 		return err
