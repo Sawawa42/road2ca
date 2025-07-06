@@ -6,7 +6,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"road2ca/pkg/minigin"
-	"road2ca/pkg/constants"
+	"road2ca/internal/constants"
 )
 
 type UserDTO struct {

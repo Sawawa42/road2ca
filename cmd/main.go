@@ -6,9 +6,11 @@ import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"road2ca/pkg/http/middleware"
-	"road2ca/pkg/server"
-	"road2ca/pkg/server/handler"
+	"road2ca/internal/handler"
+	"road2ca/internal/middleware"
+	"road2ca/internal/server"
+	"road2ca/internal/repository"
+	"road2ca/internal/service"
 )
 
 var (
@@ -26,11 +28,7 @@ func main() {
 	db := connectDB()
 	defer db.Close()
 
-	// ハンドラの初期化
-	h := handler.New(db)
-
-	// ミドルウェアの初期化
-	m := middleware.NewMiddleware(db)
+	h, m := initServer(db)
 
 	server.Serve(addr, h, m)
 }
@@ -50,4 +48,13 @@ func connectDB() *sql.DB {
 		log.Fatalf("Failed to ping database: %+v", err)
 	}
 	return db
+}
+
+func initServer(db *sql.DB) (*handler.Handler, *middleware.Middleware) {
+	r := repository.New(db)
+	s := service.New(r)
+	h := handler.New(s)
+	m := middleware.New(s)
+
+	return h, m
 }

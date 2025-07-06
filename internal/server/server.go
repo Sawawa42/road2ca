@@ -2,9 +2,9 @@ package server
 
 import (
 	"log"
-	"road2ca/pkg/http/middleware"
 	"road2ca/pkg/minigin"
-	"road2ca/pkg/server/handler"
+	"road2ca/internal/handler"
+	"road2ca/internal/middleware"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -15,19 +15,19 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 	router := minigin.New()
 
 	// CORS対応など共通の設定を適用
-	router.Use(m.CommonConfig)
+	router.Use(m.Cors.SettingCors)
 
 	/* ===== URLマッピングを行う ===== */
-	router.GET("/setting/get", h.HandleSettingGet)
+	router.GET("/setting/get", h.Setting.HandleSettingGet)
 
-	router.POST("/user/create", h.HandleUserCreate)
+	router.POST("/user/create", h.User.HandleUserCreate)
 
 	userGroup := router.Group("/user")
 	{
 		// 認証ミドルウェアを適用
-		userGroup.Use(m.Authenticate)
+		userGroup.Use(m.Auth.Authenticate)
 
-		userGroup.GET("/get", h.HandleUserGet)
+		userGroup.GET("/get", h.User.HandleUserGet)
 		// userGroup.POST("/update", h.HandleUserUpdate) // ex04
 	}
 

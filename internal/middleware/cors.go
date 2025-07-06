@@ -5,8 +5,17 @@ import (
 	"road2ca/pkg/minigin"
 )
 
-func (m *Middleware) CommonConfig(c *minigin.Context) {
-	// CORS対応
+type CorsMiddleware interface {
+	SettingCors(c *minigin.Context)
+}
+
+type corsMiddleware struct{}
+
+func NewCorsMiddleware() CorsMiddleware {
+	return &corsMiddleware{}
+}
+
+func (m *corsMiddleware) SettingCors(c *minigin.Context) {
 	c.Writer.Header().Add("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Add("Access-Control-Allow-Headers", "Content-Type,Accept,Origin,x-token")
 
@@ -16,7 +25,5 @@ func (m *Middleware) CommonConfig(c *minigin.Context) {
 		return
 	}
 
-	// 共通のレスポンスヘッダを設定
-	c.Writer.Header().Add("Content-Type", "application/json")
 	c.Next()
 }
