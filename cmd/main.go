@@ -4,13 +4,16 @@ import (
 	"flag"
 
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/redis/go-redis/v9"
+	"context"
 )
 
 var (
@@ -24,9 +27,12 @@ func init() {
 }
 
 func main() {
-	// データベース接続の初期化
-	db := connectDB()
+	// MySQL接続の初期化
+	db := initMySQL()
 	defer db.Close()
+
+	// Redis接続の初期化
+	rdb := initRedis()
 
 	h, m := initServer(db)
 
@@ -34,7 +40,7 @@ func main() {
 }
 
 // connectDB MySQLデータベースに接続する
-func connectDB() *sql.DB {
+func initMySQL() *sql.DB {
 	// TODO: .envからDSNを取得するようにする(正直今回は簡単のためハードコーディングでもいい気がする)
 	dsn := "root:ca-tech-dojo@tcp(localhost:3306)/road2ca?parseTime=true"
 
@@ -48,6 +54,18 @@ func connectDB() *sql.DB {
 		log.Fatalf("Failed to ping database: %+v", err)
 	}
 	return db
+}
+
+// initRedis Redis接続の初期化
+func initRedis() *redis.Client {
+	addr := ""
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+	})
+	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
+		log.Fatalf("Failed to connect to Redis: %+v", err)
+	}
+	return rdb
 }
 
 func initServer(db *sql.DB) (*handler.Handler, *middleware.Middleware) {

@@ -31,6 +31,10 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 		userGroup.POST("/update", h.User.HandleUserUpdate)
 	}
 
+	router.Use(m.Auth.Authenticate)
+
+	// router.GET("/collection/list", h.Collection.HandleCollectionList)
+
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
 	if err := router.Run(addr); err != nil {
