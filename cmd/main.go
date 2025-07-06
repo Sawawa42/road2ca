@@ -8,8 +8,8 @@ import (
 	"log"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
-	"road2ca/internal/server"
 	"road2ca/internal/repository"
+	"road2ca/internal/server"
 	"road2ca/internal/service"
 )
 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"road2ca/pkg/minigin"
 	"road2ca/internal/service"
+	"road2ca/pkg/minigin"
 )
 
 type UserHandler interface {
@@ -28,19 +28,25 @@ func (h *userHandler) HandleUserCreate(c *minigin.Context) {
 	var req service.UserCreateRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
-		http.Error(c.Writer, "Invalid request", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Invalid request body",
+		})
 		return
 	}
 
 	if req.Name == "" {
-		http.Error(c.Writer, "Invalid request", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Name is required",
+		})
 		return
 	}
 
 	res, err := h.userService.CreateUser(req.Name)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
-		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, minigin.H{
+			"error": "Internal server error",
+		})
 		return
 	}
 	c.JSON(http.StatusOK, res)
@@ -51,7 +57,9 @@ func (h *userHandler) HandleUserGet(c *minigin.Context) {
 	res, err := h.userService.GetUser(c)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
-		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, minigin.H{
+			"error": "Internal server error",
+		})
 		return
 	}
 

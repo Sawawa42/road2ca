@@ -5,7 +5,7 @@ import (
 )
 
 type Handler struct {
-	User UserHandler
+	User    UserHandler
 	Setting SettingHandler
 }
 

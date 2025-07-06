@@ -5,8 +5,8 @@ import (
 )
 
 type Services struct {
-	User UserService
-	Auth AuthService
+	User    UserService
+	Auth    AuthService
 	Setting SettingService
 }
 

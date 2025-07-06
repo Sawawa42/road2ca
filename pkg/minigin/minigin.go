@@ -39,11 +39,13 @@ func (c *Context) Next() {
 	}
 }
 
+type H map[string]any
+
 func (c *Context) JSON(code int, obj any) {
 	json, err := json.Marshal(obj)
 	if err != nil {
 		log.Printf("Failed to json.Marshal: %v", err)
-		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, H{"error": "Internal server error"})
 		return
 	}
 	c.Writer.Header().Set("Content-Type", "application/json")

@@ -1,12 +1,12 @@
 package service
 
 import (
-	"road2ca/internal/entity"
-	"road2ca/internal/repository"
 	"crypto/md5"
 	"fmt"
-	"road2ca/pkg/minigin"
 	"road2ca/internal/constants"
+	"road2ca/internal/entity"
+	"road2ca/internal/repository"
+	"road2ca/pkg/minigin"
 )
 
 type UserDTO struct {
@@ -42,10 +42,10 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 func (s *userService) CreateUser(name string) (*UserCreateResponseDTO, error) {
 	token := fmt.Sprintf("%x", md5.Sum([]byte(name)))
 	user := &entity.User{
-		Name:  name,
+		Name:      name,
 		HighScore: 0,
-		Coin: 0,
-		Token: token,
+		Coin:      0,
+		Token:     token,
 	}
 	if err := s.userRepo.Save(user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)

@@ -27,14 +27,18 @@ func (m *authMiddleware) Authenticate(c *minigin.Context) {
 	// 認証情報を取得
 	token := c.Request.Header.Get("x-token")
 	if len(token) < 1 {
-		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
+		c.JSON(http.StatusUnauthorized, minigin.H{
+			"error": "Unauthorized",
+		})
 		return
 	}
 
 	err := m.authService.SaveTokenToContext(token, c)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
-		http.Error(c.Writer, "Unauthorized", http.StatusUnauthorized)
+		c.JSON(http.StatusUnauthorized, minigin.H{
+			"error": "Unauthorized",
+		})
 		return
 	}
 

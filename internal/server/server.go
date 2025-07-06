@@ -2,9 +2,9 @@ package server
 
 import (
 	"log"
-	"road2ca/pkg/minigin"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
+	"road2ca/pkg/minigin"
 
 	_ "github.com/go-sql-driver/mysql"
 )

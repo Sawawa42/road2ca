@@ -1,11 +1,11 @@
 package service
 
 import (
-	"road2ca/internal/repository"
-	"fmt"
-	"road2ca/pkg/minigin"
-	"road2ca/internal/constants"
 	"context"
+	"fmt"
+	"road2ca/internal/constants"
+	"road2ca/internal/repository"
+	"road2ca/pkg/minigin"
 )
 
 type AuthService interface {

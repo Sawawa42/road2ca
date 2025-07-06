@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"net/http"
-	"road2ca/pkg/minigin"
-	"road2ca/internal/service"
 	"log"
+	"net/http"
+	"road2ca/internal/service"
+	"road2ca/pkg/minigin"
 )
 
 type SettingHandler interface {
@@ -26,7 +26,9 @@ func (h *settingHandler) HandleSettingGet(c *minigin.Context) {
 	res, err := h.settingService.GetSetting()
 	if err != nil {
 		log.Printf("ERROR: %v", err)
-		http.Error(c.Writer, "Internal server error", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, minigin.H{
+			"error": "Internal server error",
+		})
 		return
 	}
 
