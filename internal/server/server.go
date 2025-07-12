@@ -33,7 +33,7 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 
 	router.Use(m.Auth.Authenticate)
 
-	// router.GET("/collection/list", h.Collection.HandleCollectionList)
+	router.GET("/collection/list", h.Collection.HandleGetCollectionList)
 
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
