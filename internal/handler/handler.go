@@ -7,11 +7,13 @@ import (
 type Handler struct {
 	User    UserHandler
 	Setting SettingHandler
+	Collection CollectionHandler
 }
 
 func New(s *service.Services) *Handler {
 	return &Handler{
 		User:    NewUserHandler(s.User),
 		Setting: NewSettingHandler(),
+		Collection: NewCollectionHandler(s.Collection),
 	}
 }

@@ -4,13 +4,16 @@ import (
 	"flag"
 
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/redis/go-redis/v9"
+	"context"
 )
 
 var (
@@ -24,17 +27,23 @@ func init() {
 }
 
 func main() {
-	// データベース接続の初期化
-	db := connectDB()
+	// MySQL接続の初期化
+	db := initMySQL()
 	defer db.Close()
 
-	h, m := initServer(db)
+	// Redis接続の初期化
+	rdb := initRedis()
+
+	h, m, err := initServer(db, rdb)
+	if err != nil {
+		log.Fatalf("Failed to initialize server: %+v", err)
+	}
 
 	server.Serve(addr, h, m)
 }
 
 // connectDB MySQLデータベースに接続する
-func connectDB() *sql.DB {
+func initMySQL() *sql.DB {
 	// TODO: .envからDSNを取得するようにする(正直今回は簡単のためハードコーディングでもいい気がする)
 	dsn := "root:ca-tech-dojo@tcp(localhost:3306)/road2ca?parseTime=true"
 
@@ -50,11 +59,31 @@ func connectDB() *sql.DB {
 	return db
 }
 
-func initServer(db *sql.DB) (*handler.Handler, *middleware.Middleware) {
-	r := repository.New(db)
+// initRedis Redis接続の初期化
+func initRedis() *redis.Client {
+	addr := "localhost:6379"
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+	})
+	if rdb == nil {
+		log.Fatal("Failed to create Redis client")
+	}
+	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
+		log.Fatalf("Failed to connect to Redis: %+v", err)
+	}
+	return rdb
+}
+
+func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
+	r := repository.New(db, rdb)
 	s := service.New(r)
 	h := handler.New(s)
 	m := middleware.New(s)
 
-	return h, m
+	// キャッシュの初期化
+	if err := s.Item.CacheItems(); err != nil {
+		return nil, nil, err
+	}
+
+	return h, m, nil
 }

@@ -18,18 +18,22 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 	router.Use(m.Cors.SettingCors)
 
 	/* ===== URLマッピングを行う ===== */
-	router.GET("/setting/get", h.Setting.HandleSettingGet)
+	router.GET("/setting/get", h.Setting.HandleGetSetting)
 
-	router.POST("/user/create", h.User.HandleUserCreate)
+	router.POST("/user/create", h.User.HandleCreateUser)
 
 	userGroup := router.Group("/user")
 	{
 		// 認証ミドルウェアを適用
 		userGroup.Use(m.Auth.Authenticate)
 
-		userGroup.GET("/get", h.User.HandleUserGet)
-		userGroup.POST("/update", h.User.HandleUserUpdate)
+		userGroup.GET("/get", h.User.HandleGetUser)
+		userGroup.POST("/update", h.User.HandleUpdateUser)
 	}
+
+	router.Use(m.Auth.Authenticate)
+
+	router.GET("/collection/list", h.Collection.HandleGetCollectionList)
 
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
