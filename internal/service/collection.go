@@ -49,16 +49,16 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var res []*CollectionsResponse
-	for _, item := range items {
-		hasItem := false
-		for _, collection := range collections {
-			if collection.ItemID == item.ID {
-				hasItem = true
-				break
-			}
-		}
+	// 特定のアイテムIDがユーザのコレクションに含まれているかをチェックするためのマップを作成
+	collectionItemMap := make(map[int]bool)
+	for _, collection := range collections {
+		collectionItemMap[collection.ItemID] = true
+	}
 
+	res := make([]*CollectionsResponse, 0, len(items))
+	for _, item := range items {
+		// アイテム所持を判定
+		hasItem := collectionItemMap[item.ID]
 		res = append(res, &CollectionsResponse{
 			CollectionID: item.ID,
 			Name:         item.Name,
