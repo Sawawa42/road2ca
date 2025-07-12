@@ -15,7 +15,7 @@ type collectionHandler struct {
 	collectionService service.CollectionService
 }
 
-func NewCollection(collectionService service.CollectionService) CollectionHandler {
+func NewCollectionHandler(collectionService service.CollectionService) CollectionHandler {
 	return &collectionHandler{
 		collectionService: collectionService,
 	}

@@ -9,9 +9,9 @@ import (
 )
 
 type UserHandler interface {
-	HandleUserCreate(c *minigin.Context)
-	HandleUserGet(c *minigin.Context)
-	HandleUserUpdate(c *minigin.Context)
+	HandleCreateUser(c *minigin.Context)
+	HandleGetUser(c *minigin.Context)
+	HandleUpdateUser(c *minigin.Context)
 }
 
 type userHandler struct {
@@ -24,8 +24,8 @@ func NewUserHandler(userService service.UserService) UserHandler {
 	}
 }
 
-// HandleUserCreate ユーザ登録処理
-func (h *userHandler) HandleUserCreate(c *minigin.Context) {
+// HandleCreateUser ユーザ登録処理
+func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 	var req service.UserCreateRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
@@ -53,8 +53,8 @@ func (h *userHandler) HandleUserCreate(c *minigin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// HandleUserGet ユーザ情報取得処理
-func (h *userHandler) HandleUserGet(c *minigin.Context) {
+// HandleGetUser ユーザ情報取得処理
+func (h *userHandler) HandleGetUser(c *minigin.Context) {
 	res, err := h.userService.GetUser(c)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
@@ -67,8 +67,8 @@ func (h *userHandler) HandleUserGet(c *minigin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// HandleUserUpdate ユーザ情報更新処理
-func (h *userHandler) HandleUserUpdate(c *minigin.Context) {
+// HandleUpdateUser ユーザ情報更新処理
+func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 	var req service.UserUpdateRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {

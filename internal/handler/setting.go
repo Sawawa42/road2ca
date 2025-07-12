@@ -8,7 +8,7 @@ import (
 )
 
 type SettingHandler interface {
-	HandleSettingGet(c *minigin.Context)
+	HandleGetSetting(c *minigin.Context)
 }
 
 type settingHandler struct {
@@ -21,8 +21,8 @@ func NewSettingHandler() SettingHandler {
 	}
 }
 
-// HandleSettingGet 設定情報を取得する
-func (h *settingHandler) HandleSettingGet(c *minigin.Context) {
+// HandleGetSetting 設定情報を取得する
+func (h *settingHandler) HandleGetSetting(c *minigin.Context) {
 	res, err := h.settingService.GetSetting()
 	if err != nil {
 		log.Printf("ERROR: %v", err)

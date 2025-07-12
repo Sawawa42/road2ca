@@ -14,6 +14,6 @@ func New(s *service.Services) *Handler {
 	return &Handler{
 		User:    NewUserHandler(s.User),
 		Setting: NewSettingHandler(),
-		Collection: NewCollection(s.Collection),
+		Collection: NewCollectionHandler(s.Collection),
 	}
 }
