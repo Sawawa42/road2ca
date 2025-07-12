@@ -11,8 +11,9 @@ import (
 
 type ItemRepository interface {
 	SaveItemsToCache(items []*entity.Item) error
-	FindItemByIdFromCache(id int) (*entity.Item, error)
+	FindItemByIdFromCache(id int) (*entity.Item, error) // 使わない説
 	FindAllItemsFromDB() ([]*entity.Item, error)
+	FindAllItemsFromCache() ([]*entity.Item, error)
 }
 
 type itemRepository struct {
@@ -78,6 +79,34 @@ func (r *itemRepository) FindAllItemsFromDB() ([]*entity.Item, error) {
 		var item entity.Item
 		if err := rows.Scan(&item.ID, &item.Name, &item.Rarity, &item.Weight); err != nil {
 			return nil, fmt.Errorf("failed to scan item: %w", err)
+		}
+		items = append(items, &item)
+	}
+
+	return items, nil
+}
+
+// FindAllItemsFromCache キャッシュから全てのアイテムを取得する
+func (r *itemRepository) FindAllItemsFromCache() ([]*entity.Item, error) {
+	ctx := context.Background()
+	keys, err := r.rdb.Keys(ctx, "item:*").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get item keys: %w", err)
+	}
+
+	var items []*entity.Item
+	for _, key := range keys {
+		val, err := r.rdb.Get(ctx, key).Result()
+		if err != nil {
+			if err == redis.Nil {
+				continue // アイテムが存在しない場合はスキップ
+			}
+			return nil, fmt.Errorf("failed to get item from cache: %w", err)
+		}
+
+		var item entity.Item
+		if err := json.Unmarshal([]byte(val), &item); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 		}
 		items = append(items, &item)
 	}

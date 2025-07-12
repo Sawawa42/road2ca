@@ -2,13 +2,11 @@ package service
 
 import (
 	"fmt"
-	// "road2ca/internal/entity"
 	"road2ca/internal/repository"
 )
 
 type ItemService interface {
 	CacheItems() error
-	// GetItem(id int) (*entity.Item, error)
 }
 
 type itemService struct {
@@ -36,12 +34,3 @@ func (s *itemService) CacheItems() error {
 
 	return nil
 }
-
-// func (s *itemService) GetItem(id int) (*entity.Item, error) {
-// 	item, err := s.itemRepo.FindItemByIdFromCache(id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to find item from Redis: %w", err)
-// 	}
-	
-// 	return item, nil
-// }
