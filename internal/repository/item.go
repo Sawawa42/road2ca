@@ -10,9 +10,9 @@ import (
 )
 
 type ItemRepository interface {
-	CacheAllToRedis(items []*entity.Item) error
-	FindByIdFromRedis(id int) (*entity.Item, error)
-	FindAllFromMySQL() ([]*entity.Item, error)
+	SaveItemsToCache(items []*entity.Item) error
+	FindItemByIdFromCache(id int) (*entity.Item, error)
+	FindAllItemsFromDB() ([]*entity.Item, error)
 }
 
 type itemRepository struct {
@@ -27,8 +27,8 @@ func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepository {
 	}
 }
 
-// CacheAllToRedis Redisにアイテム情報を保存する
-func (r *itemRepository) CacheAllToRedis(items []*entity.Item) error {
+// SaveItemsToCache アイテム情報をキャッシュする
+func (r *itemRepository) SaveItemsToCache(items []*entity.Item) error {
 	pipe := r.rdb.Pipeline()
 	ctx := context.Background()
 	for _, item := range items {
@@ -46,8 +46,8 @@ func (r *itemRepository) CacheAllToRedis(items []*entity.Item) error {
 	return nil
 }
 
-// FindByIdFromRedis Redisからアイテム情報を取得する
-func (r *itemRepository) FindByIdFromRedis(id int) (*entity.Item, error) {
+// FindItemByIdFromCache キャッシュからitemIDに対応するアイテムを取得する
+func (r *itemRepository) FindItemByIdFromCache(id int) (*entity.Item, error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("item:%d", id)
 	val, err := r.rdb.Get(ctx, key).Result()
@@ -65,7 +65,8 @@ func (r *itemRepository) FindByIdFromRedis(id int) (*entity.Item, error) {
 	return &item, nil
 }
 
-func (r *itemRepository) FindAllFromMySQL() ([]*entity.Item, error) {
+// FindAllItemsFromDB DBから全てのアイテムを取得する
+func (r *itemRepository) FindAllItemsFromDB() ([]*entity.Item, error) {
 	query := "SELECT * FROM items"
 	rows, err := r.db.Query(query)
 	if err != nil {
