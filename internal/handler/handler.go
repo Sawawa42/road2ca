@@ -8,6 +8,7 @@ type Handler struct {
 	User    UserHandler
 	Setting SettingHandler
 	Collection CollectionHandler
+	Ranking RankingHandler
 }
 
 func New(s *service.Services) *Handler {
@@ -15,5 +16,6 @@ func New(s *service.Services) *Handler {
 		User:    NewUserHandler(s.User),
 		Setting: NewSettingHandler(),
 		Collection: NewCollectionHandler(s.Collection),
+		Ranking: NewRankingHandler(s.Ranking),
 	}
 }

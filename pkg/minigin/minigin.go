@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"strconv"
+	"fmt"
 )
 
 type HandlerFunc func(*Context)
@@ -51,6 +53,14 @@ func (c *Context) JSON(code int, obj any) {
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(code)
 	c.Writer.Write(json)
+}
+
+func (c *Context) QueryInt(key string) (int, error) {
+	values := c.Request.URL.Query()
+	if value, ok := values[key]; ok && len(value) > 0 {
+		return strconv.Atoi(value[0])
+	}
+	return 0, fmt.Errorf("query parameter %s not found", key)
 }
 
 func New() *Engine {

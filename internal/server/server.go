@@ -35,6 +35,8 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 
 	router.GET("/collection/list", h.Collection.HandleGetCollectionList)
 
+	router.GET("/ranking/list", h.Ranking.HandleGetRankingList)
+
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
 	if err := router.Run(addr); err != nil {

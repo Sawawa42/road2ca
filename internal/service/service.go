@@ -10,6 +10,7 @@ type Services struct {
 	Setting SettingService
 	Item    ItemService
 	Collection CollectionService
+	Ranking RankingService
 }
 
 func New(repo *repository.Repositories) *Services {
@@ -19,5 +20,6 @@ func New(repo *repository.Repositories) *Services {
 		Setting: NewSettingService(),
 		Item:    NewItemService(repo.Item),
 		Collection: NewCollectionService(repo.Collection, repo.Item),
+		Ranking: NewRankingService(repo.User, repo.Ranking),
 	}
 }
