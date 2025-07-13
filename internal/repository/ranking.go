@@ -1,9 +1,11 @@
 package repository
 
 import (
-	"github.com/redis/go-redis/v9"
-	"road2ca/internal/entity"
 	"context"
+	"road2ca/internal/entity"
+	"strconv"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type RankingRepository interface {
@@ -50,8 +52,12 @@ func (r *rankingRepository) FindInRangeFromCache(start, end int) ([]*entity.Rank
 
 	results := make([]*entity.Ranking, 0, len(scores))
 	for i, score := range scores {
+		userid, err := strconv.Atoi(score.Member.(string))
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, &entity.Ranking{
-			UserID: int(score.Member.(int)),
+			UserID: int(userid),
 			Score:  int(score.Score),
 			Rank:   start + i + 1,
 		})
