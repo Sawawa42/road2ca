@@ -10,6 +10,7 @@ import (
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
+	"road2ca/internal/entity"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
@@ -85,5 +86,36 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 		return nil, nil, err
 	}
 
+	// シードデータの追加
+	if err := seed(r); err != nil {
+		return nil, nil, err
+	}
+
 	return h, m, nil
+}
+
+func seed(r *repository.Repositories) error {
+	users := []*entity.User{
+		{Name: "Alice", HighScore: 100, Token: "alice"},
+		{Name: "Bob", HighScore: 200, Token: "bob"},
+		{Name: "Charlie", HighScore: 150, Token: "charlie"},
+		{Name: "Dave", HighScore: 300, Token: "dave"},
+		{Name: "Eve", HighScore: 250, Token: "eve"},
+		{Name: "Frank", HighScore: 400, Token: "frank"},
+		{Name: "Grace", HighScore: 350, Token: "grace"},
+		{Name: "Heidi", HighScore: 450, Token: "heidi"},
+		{Name: "Ivan", HighScore: 500, Token: "ivan"},
+		{Name: "Judy", HighScore: 550, Token: "judy"},
+	}
+
+	for _, user := range users {
+		if err := r.User.Save(user); err != nil {
+			return err
+		}
+		if err := r.Ranking.SaveToCache(user); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
