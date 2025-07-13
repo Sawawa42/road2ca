@@ -39,7 +39,7 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 	}
 
 	// 全てのアイテムをキャッシュから取得
-	items, err := s.itemRepo.FindAllItemsFromCache()
+	items, err := s.itemRepo.FindAllFromCache()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}
