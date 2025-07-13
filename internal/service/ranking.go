@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"road2ca/internal/repository"
+	"road2ca/internal/entity"
 )
 
 type Ranking struct {
@@ -13,7 +14,7 @@ type Ranking struct {
 }
 
 type RankingService interface {
-	// Create() error
+	Update(user *entity.User) error
 	GetInRange(start, end int) ([]*Ranking, error)
 }
 
@@ -27,6 +28,15 @@ func NewRankingService(userRepo repository.UserRepository, rankingRepo repositor
 		rankingRepo: rankingRepo,
 		userRepo:    userRepo,
 	}
+}
+
+// Update updates the user's ranking based on their high score.
+func (s *rankingService) Update(user *entity.User) error {
+	if err := s.rankingRepo.SaveToCache(user); err != nil {
+		return fmt.Errorf("failed to save ranking to cache: %w", err)
+	}
+
+	return nil
 }
 
 // GetInRange returns rankings in the specified range.

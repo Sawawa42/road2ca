@@ -85,7 +85,7 @@ func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 		return
 	}
 
-	if err := h.userService.Update(c, req.Name); err != nil {
+	if err := h.userService.UpdateName(c, req.Name); err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",

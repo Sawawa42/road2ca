@@ -6,7 +6,7 @@ import (
 	"road2ca/internal/middleware"
 	"road2ca/pkg/minigin"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // いらない？
 )
 
 // Serve HTTPサーバを起動する
@@ -33,6 +33,7 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 	router.Use(m.Auth.Authenticate)
 	router.GET("/collection/list", h.Collection.HandleGetCollectionList)
 	router.GET("/ranking/list", h.Ranking.HandleGetRankingList)
+	router.POST("/game/finish", h.Game.HandleGameFinish)
 
 	// サーバを起動
 	log.Println("Server running...")
