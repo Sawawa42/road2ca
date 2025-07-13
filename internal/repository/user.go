@@ -8,6 +8,7 @@ import (
 type UserRepository interface {
 	Save(user *entity.User) error
 	FindByToken(token string) (*entity.User, error)
+	FindByID(id int) (*entity.User, error)
 }
 
 type userRepository struct {
@@ -35,6 +36,17 @@ func (r *userRepository) Save(user *entity.User) error {
 func (r *userRepository) FindByToken(token string) (*entity.User, error) {
 	query := "SELECT id, name, highscore, coin, token FROM users WHERE token = ?"
 	row := r.db.QueryRow(query, token)
+	user := &entity.User{}
+	err := row.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin, &user.Token)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *userRepository) FindByID(id int) (*entity.User, error) {
+	query := "SELECT id, name, highscore, coin, token FROM users WHERE id = ?"
+	row := r.db.QueryRow(query, id)
 	user := &entity.User{}
 	err := row.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin, &user.Token)
 	if err != nil {

@@ -10,10 +10,10 @@ import (
 )
 
 type ItemRepository interface {
-	SaveItemsToCache(items []*entity.Item) error
-	FindItemByIdFromCache(id int) (*entity.Item, error) // 使わない説
-	FindAllItemsFromDB() ([]*entity.Item, error)
-	FindAllItemsFromCache() ([]*entity.Item, error)
+	SaveToCache(items []*entity.Item) error
+	FindByIdFromCache(id int) (*entity.Item, error) // 使わない説
+	FindAllFromDB() ([]*entity.Item, error)
+	FindAllFromCache() ([]*entity.Item, error)
 }
 
 type itemRepository struct {
@@ -28,8 +28,8 @@ func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepository {
 	}
 }
 
-// SaveItemsToCache アイテム情報をキャッシュする
-func (r *itemRepository) SaveItemsToCache(items []*entity.Item) error {
+// SaveToCache アイテム情報をキャッシュする
+func (r *itemRepository) SaveToCache(items []*entity.Item) error {
 	pipe := r.rdb.Pipeline()
 	ctx := context.Background()
 	for _, item := range items {
@@ -47,8 +47,8 @@ func (r *itemRepository) SaveItemsToCache(items []*entity.Item) error {
 	return nil
 }
 
-// FindItemByIdFromCache キャッシュからitemIDに対応するアイテムを取得する
-func (r *itemRepository) FindItemByIdFromCache(id int) (*entity.Item, error) {
+// FindByIdFromCache キャッシュからitemIDに対応するアイテムを取得する
+func (r *itemRepository) FindByIdFromCache(id int) (*entity.Item, error) {
 	ctx := context.Background()
 	key := fmt.Sprintf("item:%d", id)
 	val, err := r.rdb.Get(ctx, key).Result()
@@ -66,8 +66,8 @@ func (r *itemRepository) FindItemByIdFromCache(id int) (*entity.Item, error) {
 	return &item, nil
 }
 
-// FindAllItemsFromDB DBから全てのアイテムを取得する
-func (r *itemRepository) FindAllItemsFromDB() ([]*entity.Item, error) {
+// FindAllFromDB DBから全てのアイテムを取得する
+func (r *itemRepository) FindAllFromDB() ([]*entity.Item, error) {
 	query := "SELECT * FROM items"
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -86,8 +86,8 @@ func (r *itemRepository) FindAllItemsFromDB() ([]*entity.Item, error) {
 	return items, nil
 }
 
-// FindAllItemsFromCache キャッシュから全てのアイテムを取得する
-func (r *itemRepository) FindAllItemsFromCache() ([]*entity.Item, error) {
+// FindAllFromCache キャッシュから全てのアイテムを取得する
+func (r *itemRepository) FindAllFromCache() ([]*entity.Item, error) {
 	ctx := context.Background()
 	keys, err := r.rdb.Keys(ctx, "item:*").Result()
 	if err != nil {

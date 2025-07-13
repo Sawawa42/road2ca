@@ -23,7 +23,7 @@ func NewSettingHandler() SettingHandler {
 
 // HandleGetSetting 設定情報を取得する
 func (h *settingHandler) HandleGetSetting(c *minigin.Context) {
-	res, err := h.settingService.GetSetting()
+	res, err := h.settingService.Get()
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
