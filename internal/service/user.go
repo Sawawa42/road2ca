@@ -25,13 +25,13 @@ type UserCreateRequestDTO struct {
 }
 
 type UserUpdateRequestDTO struct {
-	Name      string `json:"name"`
+	Name string `json:"name"`
 }
 
 type UserService interface {
 	Create(name string) (*UserCreateResponseDTO, error)
 	Get(c *minigin.Context) (*UserDTO, error)
-	Update(c *minigin.Context, name string) error
+	UpdateName(c *minigin.Context, name string) error
 }
 
 type userService struct {
@@ -74,7 +74,7 @@ func (s *userService) Get(c *minigin.Context) (*UserDTO, error) {
 	}, nil
 }
 
-func (s *userService) Update(c *minigin.Context, name string) error {
+func (s *userService) UpdateName(c *minigin.Context, name string) error {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return fmt.Errorf("failed to get user")
@@ -86,4 +86,3 @@ func (s *userService) Update(c *minigin.Context, name string) error {
 	}
 	return nil
 }
-	

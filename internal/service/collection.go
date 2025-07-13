@@ -9,10 +9,10 @@ import (
 )
 
 type CollectionsResponse struct {
-	CollectionID int   `json:"collectionID"`
-	Name 	   string `json:"name"`
-	Rarity    int   `json:"rarity"`
-	HasItem bool  `json:"hasItem"`
+	CollectionID int    `json:"collectionID"`
+	Name         string `json:"name"`
+	Rarity       int    `json:"rarity"`
+	HasItem      bool   `json:"hasItem"`
 }
 
 type CollectionService interface {
@@ -20,14 +20,14 @@ type CollectionService interface {
 }
 
 type collectionService struct {
-	collectionRepo 	repository.CollectionRepository
-	itemRepo 	 	repository.ItemRepository
+	collectionRepo repository.CollectionRepository
+	itemRepo       repository.ItemRepository
 }
 
 func NewCollectionService(collectionRepo repository.CollectionRepository, itemRepo repository.ItemRepository) CollectionService {
 	return &collectionService{
 		collectionRepo: collectionRepo,
-		itemRepo: itemRepo,
+		itemRepo:       itemRepo,
 	}
 }
 
@@ -66,6 +66,6 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 			HasItem:      hasItem,
 		})
 	}
-	
+
 	return res, nil
 }

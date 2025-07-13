@@ -2,7 +2,7 @@ package service
 
 type SettingDTO struct {
 	GachaCoinConsumption int `json:"gachaCoinConsumption"`
-	RankingFetchCount int `json:"rankingFetchCount"`
+	RankingFetchCount    int `json:"rankingFetchCount"`
 }
 
 type SettingService interface {

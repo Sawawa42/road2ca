@@ -6,17 +6,17 @@ import (
 )
 
 type Repositories struct {
-	User UserRepository
-	Item ItemRepository
+	User       UserRepository
+	Item       ItemRepository
 	Collection CollectionRepository
-	Ranking RankingRepository
+	Ranking    RankingRepository
 }
 
 func New(db *sql.DB, rdb *redis.Client) *Repositories {
 	return &Repositories{
-		User: NewUserRepository(db),
-		Item: NewItemRepository(db, rdb),
+		User:       NewUserRepository(db),
+		Item:       NewItemRepository(db, rdb),
 		Collection: NewCollectionRepository(db),
-		Ranking: NewRankingRepository(rdb),
+		Ranking:    NewRankingRepository(rdb),
 	}
 }

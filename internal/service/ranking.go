@@ -2,24 +2,25 @@ package service
 
 import (
 	"fmt"
+	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 )
 
 type Ranking struct {
-	UserID    int `json:"userId"`
-	UserName  string `json:"userName"`
-	Rank	  int    `json:"rank"`
-	Score	 int `json:"score"`
+	UserID   int    `json:"userId"`
+	UserName string `json:"userName"`
+	Rank     int    `json:"rank"`
+	Score    int    `json:"score"`
 }
 
 type RankingService interface {
-	// Create() error
+	Update(user *entity.User) error
 	GetInRange(start, end int) ([]*Ranking, error)
 }
 
 type rankingService struct {
 	rankingRepo repository.RankingRepository
-	userRepo	repository.UserRepository
+	userRepo    repository.UserRepository
 }
 
 func NewRankingService(userRepo repository.UserRepository, rankingRepo repository.RankingRepository) RankingService {
@@ -27,6 +28,15 @@ func NewRankingService(userRepo repository.UserRepository, rankingRepo repositor
 		rankingRepo: rankingRepo,
 		userRepo:    userRepo,
 	}
+}
+
+// Update updates the user's ranking based on their high score.
+func (s *rankingService) Update(user *entity.User) error {
+	if err := s.rankingRepo.SaveToCache(user); err != nil {
+		return fmt.Errorf("failed to save ranking to cache: %w", err)
+	}
+
+	return nil
 }
 
 // GetInRange returns rankings in the specified range.

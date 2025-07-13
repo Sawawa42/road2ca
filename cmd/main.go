@@ -4,16 +4,17 @@ import (
 	"flag"
 
 	"database/sql"
-	"log"
+	"road2ca/internal/entity"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
 
+	"context"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
-	"context"
+	"log"
 )
 
 var (
@@ -63,7 +64,7 @@ func initMySQL() *sql.DB {
 func initRedis() *redis.Client {
 	addr := "localhost:6379"
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
+		Addr: addr,
 	})
 	if rdb == nil {
 		log.Fatal("Failed to create Redis client")
@@ -85,5 +86,36 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 		return nil, nil, err
 	}
 
+	// シードデータの追加
+	if err := seed(r); err != nil {
+		return nil, nil, err
+	}
+
 	return h, m, nil
+}
+
+func seed(r *repository.Repositories) error {
+	users := []*entity.User{
+		{ID: 2, Name: "Alice", HighScore: 100, Token: "alice"},
+		{ID: 3, Name: "Bob", HighScore: 200, Token: "bob"},
+		{ID: 4, Name: "Charlie", HighScore: 150, Token: "charlie"},
+		{ID: 5, Name: "Dave", HighScore: 300, Token: "dave"},
+		{ID: 6, Name: "Eve", HighScore: 250, Token: "eve"},
+		{ID: 7, Name: "Frank", HighScore: 400, Token: "frank"},
+		{ID: 8, Name: "Grace", HighScore: 350, Token: "grace"},
+		{ID: 9, Name: "Heidi", HighScore: 450, Token: "heidi"},
+		{ID: 10, Name: "Ivan", HighScore: 500, Token: "ivan"},
+		{ID: 11, Name: "Judy", HighScore: 1000, Token: "judy"},
+	}
+
+	for _, user := range users {
+		if err := r.User.Save(user); err != nil {
+			return err
+		}
+		if err := r.Ranking.SaveToCache(user); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
