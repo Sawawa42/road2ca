@@ -5,8 +5,6 @@ import (
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/pkg/minigin"
-
-	_ "github.com/go-sql-driver/mysql" // いらない？
 )
 
 // Serve HTTPサーバを起動する
