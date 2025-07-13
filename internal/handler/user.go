@@ -42,7 +42,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 		return
 	}
 
-	res, err := h.userService.CreateUser(req.Name)
+	res, err := h.userService.Create(req.Name)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
@@ -55,7 +55,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 
 // HandleGetUser ユーザ情報取得処理
 func (h *userHandler) HandleGetUser(c *minigin.Context) {
-	res, err := h.userService.GetUser(c)
+	res, err := h.userService.Get(c)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
@@ -85,7 +85,7 @@ func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 		return
 	}
 
-	if err := h.userService.UpdateUser(c, req.Name); err != nil {
+	if err := h.userService.Update(c, req.Name); err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",

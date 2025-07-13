@@ -29,9 +29,9 @@ type UserUpdateRequestDTO struct {
 }
 
 type UserService interface {
-	CreateUser(name string) (*UserCreateResponseDTO, error)
-	GetUser(c *minigin.Context) (*UserDTO, error)
-	UpdateUser(c *minigin.Context, name string) error
+	Create(name string) (*UserCreateResponseDTO, error)
+	Get(c *minigin.Context) (*UserDTO, error)
+	Update(c *minigin.Context, name string) error
 }
 
 type userService struct {
@@ -44,7 +44,7 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	}
 }
 
-func (s *userService) CreateUser(name string) (*UserCreateResponseDTO, error) {
+func (s *userService) Create(name string) (*UserCreateResponseDTO, error) {
 	token := fmt.Sprintf("%x", md5.Sum([]byte(name)))
 	user := &entity.User{
 		Name:      name,
@@ -60,7 +60,7 @@ func (s *userService) CreateUser(name string) (*UserCreateResponseDTO, error) {
 	}, nil
 }
 
-func (s *userService) GetUser(c *minigin.Context) (*UserDTO, error) {
+func (s *userService) Get(c *minigin.Context) (*UserDTO, error) {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user")
@@ -74,7 +74,7 @@ func (s *userService) GetUser(c *minigin.Context) (*UserDTO, error) {
 	}, nil
 }
 
-func (s *userService) UpdateUser(c *minigin.Context, name string) error {
+func (s *userService) Update(c *minigin.Context, name string) error {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return fmt.Errorf("failed to get user")
