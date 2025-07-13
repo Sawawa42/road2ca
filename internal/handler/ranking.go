@@ -33,6 +33,13 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 		return
 	}
 
+	if start <= 0 {
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Invalid input",
+		})
+		return
+	}
+
 	// TODO: endは設定から取得する予定
 	res, err := h.rankingService.GetInRange(start, 10)
 	if err != nil {
@@ -42,5 +49,8 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, res)
+
+	c.JSON(http.StatusOK, minigin.H{
+		"ranks": res,
+	})
 }

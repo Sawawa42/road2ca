@@ -4,7 +4,6 @@ import (
 	"context"
 	"road2ca/internal/entity"
 	"strconv"
-
 	"github.com/redis/go-redis/v9"
 )
 
@@ -42,7 +41,8 @@ func (r *rankingRepository) SaveToCache(user *entity.User) error {
 // FindInRangeFromCache キャッシュから指定範囲のランキングを取得する
 func (r *rankingRepository) FindInRangeFromCache(start, end int) ([]*entity.Ranking, error) {
 	ctx := context.Background()
-	scores, err := r.rdb.ZRevRangeWithScores(ctx, "rankings", int64(start), int64(end)).Result()
+	// startは1から始まるので、Redisのインデックスに合わせて-1している
+	scores, err := r.rdb.ZRevRangeWithScores(ctx, "rankings", int64(start - 1), int64(end - 1)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +57,10 @@ func (r *rankingRepository) FindInRangeFromCache(start, end int) ([]*entity.Rank
 			return nil, err
 		}
 		results = append(results, &entity.Ranking{
-			UserID: int(userid),
+			UserID: userid,
 			Score:  int(score.Score),
-			Rank:   start + i + 1,
+			Rank:   start + i,
 		})
 	}
-
 	return results, nil
 }
