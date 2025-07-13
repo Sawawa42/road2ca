@@ -6,7 +6,7 @@ import (
 )
 
 type ItemService interface {
-	CacheItems() error
+	SetToCache() error
 }
 
 type itemService struct {
@@ -19,7 +19,7 @@ func NewItemService(itemRepo repository.ItemRepository) ItemService {
 	}
 }
 
-func (s *itemService) CacheItems() error {
+func (s *itemService) SetToCache() error {
 	items, err := s.itemRepo.FindAllFromDB()
 	if err != nil {
 		return fmt.Errorf("failed to find items from MySQL: %w", err)
