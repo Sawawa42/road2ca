@@ -1,7 +1,7 @@
 package entity
 
 type Ranking struct {
-	UserID    int
-	Score     int
-	Rank	  int
+	UserID int
+	Score  int
+	Rank   int
 }

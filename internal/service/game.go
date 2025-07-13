@@ -17,7 +17,7 @@ type GameService interface {
 }
 
 type gameService struct {
-	userRepo repository.UserRepository
+	userRepo    repository.UserRepository
 	rankingRepo repository.RankingRepository
 }
 

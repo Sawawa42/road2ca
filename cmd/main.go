@@ -4,16 +4,16 @@ import (
 	"flag"
 
 	"database/sql"
+	"road2ca/internal/entity"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
-	"road2ca/internal/entity"
 
+	"context"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
-	"context"
 	"log"
 )
 
@@ -64,7 +64,7 @@ func initMySQL() *sql.DB {
 func initRedis() *redis.Client {
 	addr := "localhost:6379"
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
+		Addr: addr,
 	})
 	if rdb == nil {
 		log.Fatal("Failed to create Redis client")

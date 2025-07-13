@@ -5,23 +5,23 @@ import (
 )
 
 type Services struct {
-	User    UserService
-	Auth    AuthService
-	Setting SettingService
-	Item    ItemService
+	User       UserService
+	Auth       AuthService
+	Setting    SettingService
+	Item       ItemService
 	Collection CollectionService
-	Ranking RankingService
-	Game    GameService
+	Ranking    RankingService
+	Game       GameService
 }
 
 func New(repo *repository.Repositories) *Services {
 	return &Services{
-		User:    NewUserService(repo.User),
-		Auth:    NewAuthService(repo.User),
-		Setting: NewSettingService(),
-		Item:    NewItemService(repo.Item),
+		User:       NewUserService(repo.User),
+		Auth:       NewAuthService(repo.User),
+		Setting:    NewSettingService(),
+		Item:       NewItemService(repo.Item),
 		Collection: NewCollectionService(repo.Collection, repo.Item),
-		Ranking: NewRankingService(repo.User, repo.Ranking),
-		Game:    NewGameService(repo.User, repo.Ranking),
+		Ranking:    NewRankingService(repo.User, repo.Ranking),
+		Game:       NewGameService(repo.User, repo.Ranking),
 	}
 }

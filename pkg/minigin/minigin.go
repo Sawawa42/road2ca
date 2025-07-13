@@ -2,11 +2,11 @@ package minigin
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"path"
 	"strconv"
-	"fmt"
 )
 
 type HandlerFunc func(*Context)

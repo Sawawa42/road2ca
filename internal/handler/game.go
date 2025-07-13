@@ -12,8 +12,8 @@ type GameHandler interface {
 }
 
 type gameHandler struct {
-	userService   	service.UserService
-	gameService 	service.GameService
+	userService service.UserService
+	gameService service.GameService
 }
 
 func NewGameHandler(userService service.UserService, gameService service.GameService) GameHandler {

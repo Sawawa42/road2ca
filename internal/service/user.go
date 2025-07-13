@@ -25,7 +25,7 @@ type UserCreateRequestDTO struct {
 }
 
 type UserUpdateRequestDTO struct {
-	Name      string `json:"name"`
+	Name string `json:"name"`
 }
 
 type UserService interface {

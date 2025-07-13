@@ -2,15 +2,15 @@ package service
 
 import (
 	"fmt"
-	"road2ca/internal/repository"
 	"road2ca/internal/entity"
+	"road2ca/internal/repository"
 )
 
 type Ranking struct {
-	UserID    int `json:"userId"`
-	UserName  string `json:"userName"`
-	Rank	  int    `json:"rank"`
-	Score	 int `json:"score"`
+	UserID   int    `json:"userId"`
+	UserName string `json:"userName"`
+	Rank     int    `json:"rank"`
+	Score    int    `json:"score"`
 }
 
 type RankingService interface {
@@ -20,7 +20,7 @@ type RankingService interface {
 
 type rankingService struct {
 	rankingRepo repository.RankingRepository
-	userRepo	repository.UserRepository
+	userRepo    repository.UserRepository
 }
 
 func NewRankingService(userRepo repository.UserRepository, rankingRepo repository.RankingRepository) RankingService {
