@@ -4,12 +4,10 @@ import (
 	"github.com/redis/go-redis/v9"
 	"road2ca/internal/entity"
 	"context"
-	"encoding/json"
-	"fmt"
 )
 
 type RankingRepository interface {
-	SaveToCache(ranking *entity.Ranking) error
+	SaveToCache(user *entity.User) error
 	FindInRangeFromCache(start, end int) ([]*entity.Ranking, error)
 }
 
@@ -24,47 +22,40 @@ func NewRankingRepository(rdb *redis.Client) RankingRepository {
 }
 
 // SaveToCache ランキング情報をキャッシュに保存する
-func (r *rankingRepository) SaveToCache(ranking *entity.Ranking) error {
+// 保存時(/game/finish)、contextから取得したuserのhighscoreを更新したuserを引数に取る
+func (r *rankingRepository) SaveToCache(user *entity.User) error {
 	ctx := context.Background()
-	key := fmt.Sprintf("ranking:%d", ranking.UserID)
-	jsonData, err := json.Marshal(ranking)
-	if err != nil {
-		return fmt.Errorf("failed to marshal ranking: %w", err)
+	// sorted setを使用してランキングを保存する
+	if err := r.rdb.ZAdd(ctx, "rankings", redis.Z{
+		// 同一スコアの場合IDの昇順にするため、Scoreの少数部でIDを表現する
+		Score: float64(user.HighScore) + (1.0 - (float64(user.ID) / (1e12 + 1.0))),
+		Member: user.ID,
+	}).Err(); err != nil {
+		return err
 	}
 
-	if err := r.rdb.Set(ctx, key, jsonData, 0).Err(); err != nil {
-		return fmt.Errorf("failed to save ranking to cache: %w", err)
-	}
 	return nil
 }
 
 // FindInRangeFromCache キャッシュから指定範囲のランキングを取得する
 func (r *rankingRepository) FindInRangeFromCache(start, end int) ([]*entity.Ranking, error) {
 	ctx := context.Background()
-	keys, err := r.rdb.Keys(ctx, "ranking:*").Result()
+	scores, err := r.rdb.ZRevRangeWithScores(ctx, "rankings", int64(start), int64(end)).Result()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get ranking keys: %w", err)
+		return nil, err
+	}
+	if len(scores) == 0 {
+		return []*entity.Ranking{}, nil
 	}
 
-	var rankings []*entity.Ranking
-	for _, key := range keys {
-		val, err := r.rdb.Get(ctx, key).Result()
-		if err != nil {
-			if err == redis.Nil {
-				continue // Key does not exist
-			}
-			return nil, fmt.Errorf("failed to get ranking from cache: %w", err)
-		}
-
-		var ranking entity.Ranking
-		if err := json.Unmarshal([]byte(val), &ranking); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal ranking: %w", err)
-		}
-
-		if ranking.Rank >= start && ranking.Rank <= end {
-			rankings = append(rankings, &ranking)
-		}
+	results := make([]*entity.Ranking, 0, len(scores))
+	for i, score := range scores {
+		results = append(results, &entity.Ranking{
+			UserID: int(score.Member.(int)),
+			Score:  int(score.Score),
+			Rank:   start + i + 1,
+		})
 	}
 
-	return rankings, nil
+	return results, nil
 }
