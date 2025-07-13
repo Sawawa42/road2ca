@@ -6,7 +6,7 @@ type SettingDTO struct {
 }
 
 type SettingService interface {
-	GetSetting() (*SettingDTO, error)
+	Get() (*SettingDTO, error)
 }
 
 type settingService struct {
@@ -26,7 +26,7 @@ const (
 	RankingFetchCount = 10
 )
 
-func (s *settingService) GetSetting() (*SettingDTO, error) {
+func (s *settingService) Get() (*SettingDTO, error) {
 	// ここでは固定値を返すが、将来的にはDBや設定ファイルから取得するよう変更可能にする
 	return &SettingDTO{
 		GachaCoinConsumption: GachaCoinConsumption,
