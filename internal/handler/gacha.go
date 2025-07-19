@@ -33,6 +33,13 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 		return
 	}
 
+	if req.Times < 1 || req.Times > 100 {
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Times must be between 1 and 100",
+		})
+		return
+	}
+
 	results, err := h.gachaService.Draw(c, req.Times)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, minigin.H{

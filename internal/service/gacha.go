@@ -36,13 +36,5 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 	// ガチャのロジックを実装
 	// ここでは仮の実装として空のスライスを返す
 	results := make([]GachaResult, times)
-	for i := 0; i < times; i++ {
-		results[i] = GachaResult{
-			CollectionID: i + 1,
-			Name:         "Item" + string(i+1),
-			Rarity:      i % 5, // 仮のレアリティ
-			IsNew:       true,  // 仮の新規フラグ
-		}
-	}
 	return results, nil
 }
