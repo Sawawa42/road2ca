@@ -12,6 +12,7 @@ type Services struct {
 	Collection CollectionService
 	Ranking    RankingService
 	Game       GameService
+	Gacha      GachaService
 }
 
 func New(repo *repository.Repositories) *Services {
@@ -23,5 +24,6 @@ func New(repo *repository.Repositories) *Services {
 		Collection: NewCollectionService(repo.Collection, repo.Item),
 		Ranking:    NewRankingService(repo.User, repo.Ranking),
 		Game:       NewGameService(repo.User, repo.Ranking),
+		Gacha:      NewGachaService(repo.User, repo.Item),
 	}
 }
