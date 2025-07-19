@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
+
+	"encoding/json"
 )
 
 type GachaHandler interface {
@@ -22,7 +24,24 @@ func NewGachaHandler(gachaService service.GachaService) GachaHandler {
 
 // HandleGachaDraw ガチャを引く処理
 func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
+	var req service.GachaRequestBody
+
+	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	results, err := h.gachaService.Draw(c, req.Times)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, minigin.H{
+			"error": "Failed to draw gacha",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, minigin.H{
-		"message": "Gacha draw endpoint is not implemented yet",
+		"results": results,
 	})
 }
