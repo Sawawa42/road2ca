@@ -10,6 +10,7 @@ type Repositories struct {
 	Item       ItemRepository
 	Collection CollectionRepository
 	Ranking    RankingRepository
+	DB         *sql.DB
 }
 
 func New(db *sql.DB, rdb *redis.Client) *Repositories {
@@ -18,5 +19,6 @@ func New(db *sql.DB, rdb *redis.Client) *Repositories {
 		Item:       NewItemRepository(db, rdb),
 		Collection: NewCollectionRepository(db),
 		Ranking:    NewRankingRepository(rdb),
+		DB:         db,
 	}
 }

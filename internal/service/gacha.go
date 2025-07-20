@@ -26,15 +26,13 @@ type GachaService interface {
 }
 
 type gachaService struct {
-	userRepo repository.UserRepository
-	itemRepo repository.ItemRepository
-	collectionRepo repository.CollectionRepository
+	repo *repository.Repositories
 	totalWeight int
 	randGen *rand.Rand
 }
 
-func NewGachaService(userRepo repository.UserRepository, itemRepo repository.ItemRepository, collectionRepo repository.CollectionRepository) GachaService {
-	items, err := itemRepo.FindAllFromCache()
+func NewGachaService(repo *repository.Repositories) GachaService {
+	items, err := repo.Item.FindAllFromCache()
 	if err != nil {
 		panic(fmt.Sprintf("failed to get items from cache: %v", err))
 	}
@@ -54,19 +52,13 @@ func NewGachaService(userRepo repository.UserRepository, itemRepo repository.Ite
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	return &gachaService{
-		userRepo: userRepo,
-		itemRepo: itemRepo,
-		collectionRepo: collectionRepo,
+		repo: repo,
 		totalWeight: totalWeight,
 		randGen: r,
 	}
 }
 
 func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error) {
-	// やること
-	// 5. 抽選結果をユーザのコレクションに追加
-	// 6. ユーザのコインを減らす
-	// (5, 6はトランザクションでまとめる)
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user from context")
@@ -78,7 +70,7 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 	}
 
 	// アイテムをキャッシュから取得
-	items, err := s.itemRepo.FindAllFromCache()
+	items, err := s.repo.Item.FindAllFromCache()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}
@@ -96,11 +88,7 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		}
 	}
 
-	// ユーザの現在のコレクションを取得
-	// pickedItemsと比較して新規アイテムを判定
-	// コレクションに追加するアイテムを決定
-	// pickedItemsのうち、新規アイテムをisNew=trueに設定したものをresultsとして返す
-	collections, err := s.collectionRepo.FindAllByUserID(user.ID)
+	collections, err := s.repo.Collection.FindAllByUserID(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
@@ -109,7 +97,8 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 	for _, collection := range collections {
 		newItemsMap[collection.ItemID] = true
 	}
-	var insertItems []*entity.Item // 新規アイテムを格納するスライス
+
+	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaResult // 結果を格納するスライス
 	for _, item := range pickedItems {
 		isNew := !newItemsMap[item.ID]
@@ -120,9 +109,34 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 			IsNew:        isNew,
 		})
 		if isNew {
-			insertItems = append(insertItems, item)
+			insertNewCollections = append(insertNewCollections, &entity.Collection{
+				UserID: user.ID,
+				ItemID: item.ID,
+			})
 		}
 	}
-	
+
+	// トランザクション開始
+	tx, err := s.repo.DB.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	err = s.repo.Collection.Save(tx, insertNewCollections)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to save collections: %w", err)
+	}
+	user.Coin -= GachaCoinConsumption * times
+	err = s.repo.User.Save(tx, user)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to save user: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
 	return results, nil
 }

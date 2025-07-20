@@ -24,6 +24,6 @@ func New(repo *repository.Repositories) *Services {
 		Collection: NewCollectionService(repo.Collection, repo.Item),
 		Ranking:    NewRankingService(repo.User, repo.Ranking),
 		Game:       NewGameService(repo.User, repo.Ranking),
-		Gacha:      NewGachaService(repo.User, repo.Item, repo.Collection),
+		Gacha:      NewGachaService(repo),
 	}
 }
