@@ -11,7 +11,6 @@ import (
 
 type ItemRepository interface {
 	SaveToCache(items []*entity.Item) error
-	FindByIdFromCache(id int) (*entity.Item, error) // 使わない説
 	FindAllFromDB() ([]*entity.Item, error)
 	FindAllFromCache() ([]*entity.Item, error)
 }
@@ -45,25 +44,6 @@ func (r *itemRepository) SaveToCache(items []*entity.Item) error {
 		return fmt.Errorf("failed to save items: %w", err)
 	}
 	return nil
-}
-
-// FindByIdFromCache キャッシュからitemIDに対応するアイテムを取得する
-func (r *itemRepository) FindByIdFromCache(id int) (*entity.Item, error) {
-	ctx := context.Background()
-	key := fmt.Sprintf("item:%d", id)
-	val, err := r.rdb.Get(ctx, key).Result()
-	if err != nil {
-		if err == redis.Nil {
-			return nil, fmt.Errorf("item with ID %d not found", id)
-		}
-		return nil, fmt.Errorf("failed to get item: %w", err)
-	}
-
-	var item entity.Item
-	if err := json.Unmarshal([]byte(val), &item); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
-	}
-	return &item, nil
 }
 
 // FindAllFromDB DBから全てのアイテムを取得する
