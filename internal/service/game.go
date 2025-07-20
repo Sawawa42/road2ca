@@ -39,7 +39,7 @@ func (s *gameService) Finish(c *minigin.Context, score int) (int, error) {
 	}
 	user.Coin += 100
 
-	if err := s.userRepo.Save(user); err != nil {
+	if err := s.userRepo.Save(nil, user); err != nil {
 		return 0, err
 	}
 
