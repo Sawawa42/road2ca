@@ -6,7 +6,8 @@ import (
 )
 
 type UserRepository interface {
-	Save(tx *sql.Tx, user *entity.User) error
+	Save(user *entity.User) error
+	SaveTx(tx *sql.Tx, user *entity.User) error
 	FindByToken(token string) (*entity.User, error)
 	FindByID(id int) (*entity.User, error)
 }
@@ -19,18 +20,25 @@ func NewUserRepository(db *sql.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) Save(tx *sql.Tx, user *entity.User) error {
+func (r *userRepository) Save(user *entity.User) error {
 	query := `
 		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		name = VALUES(name),
 		highscore = VALUES(highscore),
 		coin = VALUES(coin)`
-	if tx != nil {
-		_, err := tx.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
-		return err
-	}
 	_, err := r.db.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
+	return err
+}
+
+func (r *userRepository) SaveTx(tx *sql.Tx, user *entity.User) error {
+	query := `
+		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+		name = VALUES(name),
+		highscore = VALUES(highscore),
+		coin = VALUES(coin)`
+	_, err := tx.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
 	return err
 }
 

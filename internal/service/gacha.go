@@ -128,7 +128,7 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		return nil, fmt.Errorf("failed to save collections: %w", err)
 	}
 	user.Coin -= GachaCoinConsumption * times
-	err = s.repo.User.Save(tx, user)
+	err = s.repo.User.SaveTx(tx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save user: %w", err)
 	}
