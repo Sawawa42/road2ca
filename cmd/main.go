@@ -81,11 +81,6 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 	h := handler.New(s)
 	m := middleware.New(s)
 
-	// キャッシュの初期化
-	if err := s.Item.SetToCache(); err != nil {
-		return nil, nil, err
-	}
-
 	// シードデータの追加
 	if err := seed(r); err != nil {
 		return nil, nil, err
