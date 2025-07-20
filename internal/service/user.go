@@ -52,7 +52,7 @@ func (s *userService) Create(name string) (*UserCreateResponseDTO, error) {
 		Coin:      0,
 		Token:     token,
 	}
-	if err := s.userRepo.Save(user); err != nil {
+	if err := s.userRepo.Save(nil, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 	return &UserCreateResponseDTO{
@@ -81,7 +81,7 @@ func (s *userService) UpdateName(c *minigin.Context, name string) error {
 	}
 
 	user.Name = name
-	if err := s.userRepo.Save(user); err != nil {
+	if err := s.userRepo.Save(nil, user); err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 	return nil
