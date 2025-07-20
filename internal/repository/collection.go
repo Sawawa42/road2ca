@@ -6,7 +6,7 @@ import (
 )
 
 type CollectionRepository interface {
-	Save(collection *entity.Collection) error
+	Save(tx *sql.Tx, collection *entity.Collection) error
 	FindAllByUserID(userID int) ([]*entity.Collection, error)
 }
 
@@ -19,16 +19,17 @@ func NewCollectionRepository(db *sql.DB) CollectionRepository {
 }
 
 // Save コレクションをDBに保存する
-func (r *collectionRepository) Save(collection *entity.Collection) error {
+func (r *collectionRepository) Save(tx *sql.Tx, collection *entity.Collection) error {
 	query := `
 		INSERT INTO collections (userId, itemId) VALUES (?, ?)
 		ON DUPLICATE KEY UPDATE
 		itemId = VALUES(itemId)`
-	_, err := r.db.Exec(query, collection.UserID, collection.ItemID)
-	if err != nil {
+	if tx == nil {
+		_, err := r.db.Exec(query, collection.UserID, collection.ItemID)
 		return err
 	}
-	return nil
+	_, err := tx.Exec(query, collection.UserID, collection.ItemID)
+	return err
 }
 
 // FindAllByUserID ユーザーIDに紐づくコレクションを全て取得する
