@@ -35,11 +35,11 @@ func (r *collectionRepository) Save(tx *sql.Tx, collections []*entity.Collection
 	query += strings.Join(placeholders, ", ")
 	query += " ON DUPLICATE KEY UPDATE itemId = VALUES(itemId)"
 
-	if tx == nil {
-		_, err := r.db.Exec(query, args...)
+	if tx != nil {
+		_, err := tx.Exec(query, args...)
 		return err
 	}
-	_, err := tx.Exec(query, args...)
+	_, err := r.db.Exec(query, args...)
 	return err
 }
 

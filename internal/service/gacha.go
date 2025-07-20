@@ -93,15 +93,15 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var newItemsMap = make(map[int]bool)
+	var hasItemsMap = make(map[int]bool)
 	for _, collection := range collections {
-		newItemsMap[collection.ItemID] = true
+		hasItemsMap[collection.ItemID] = true
 	}
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaResult // 結果を格納するスライス
 	for _, item := range pickedItems {
-		isNew := !newItemsMap[item.ID]
+		isNew := !hasItemsMap[item.ID]
 		results = append(results, GachaResult{
 			CollectionID: item.ID,
 			Name:         item.Name,
@@ -125,13 +125,11 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 
 	err = s.repo.Collection.Save(tx, insertNewCollections)
 	if err != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("failed to save collections: %w", err)
 	}
 	user.Coin -= GachaCoinConsumption * times
 	err = s.repo.User.Save(tx, user)
 	if err != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("failed to save user: %w", err)
 	}
 	if err := tx.Commit(); err != nil {

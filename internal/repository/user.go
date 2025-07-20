@@ -26,11 +26,11 @@ func (r *userRepository) Save(tx *sql.Tx, user *entity.User) error {
 		name = VALUES(name),
 		highscore = VALUES(highscore),
 		coin = VALUES(coin)`
-	if tx == nil {
-		_, err := r.db.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
+	if tx != nil {
+		_, err := tx.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
 		return err
 	}
-	_, err := tx.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
+	_, err := r.db.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
 	return err
 }
 
