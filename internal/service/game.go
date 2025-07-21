@@ -17,11 +17,11 @@ type GameService interface {
 }
 
 type gameService struct {
-	userRepo    repository.UserRepository
+	userRepo    repository.UserRepo
 	rankingRepo repository.RankingRepo
 }
 
-func NewGameService(userRepo repository.UserRepository, rankingRepo repository.RankingRepo) GameService {
+func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) GameService {
 	return &gameService{
 		userRepo:    userRepo,
 		rankingRepo: rankingRepo,

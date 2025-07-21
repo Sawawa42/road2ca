@@ -23,7 +23,7 @@ func NewItemService(itemRepo repository.ItemRepo) ItemService {
 }
 
 func setToCache(itemRepo repository.ItemRepo) error {
-	items, err := itemRepo.FindFromDB()
+	items, err := itemRepo.Find()
 	if err != nil {
 		return fmt.Errorf("failed to find items from MySQL: %w", err)
 	}
@@ -31,7 +31,7 @@ func setToCache(itemRepo repository.ItemRepo) error {
 		return fmt.Errorf("no items found in MySQL")
 	}
 
-	if err := itemRepo.SaveToCache(items); err != nil {
+	if err := itemRepo.Save(items); err != nil {
 		return fmt.Errorf("failed to cache items to Redis: %w", err)
 	}
 

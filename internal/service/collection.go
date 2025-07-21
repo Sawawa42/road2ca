@@ -38,8 +38,8 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	// 全てのアイテムをキャッシュから取得
-	items, err := s.itemRepo.FindFromCache()
+	// アイテムを取得
+	items, err := s.itemRepo.Find()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}

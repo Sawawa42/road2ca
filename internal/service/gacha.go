@@ -32,7 +32,7 @@ type gachaService struct {
 }
 
 func NewGachaService(repo *repository.Repositories) GachaService {
-	items, err := repo.Item.FindFromCache()
+	items, err := repo.Item.Find()
 	if err != nil {
 		panic(fmt.Sprintf("failed to get items from cache: %v", err))
 	}
@@ -69,8 +69,8 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		return nil, fmt.Errorf("not enough coins")
 	}
 
-	// アイテムをキャッシュから取得
-	items, err := s.repo.Item.FindFromCache()
+	// アイテムを取得
+	items, err := s.repo.Item.Find()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}

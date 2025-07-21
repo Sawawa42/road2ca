@@ -5,22 +5,22 @@ import (
 	"road2ca/internal/entity"
 )
 
-type UserRepository interface {
+type UserRepo interface {
 	Save(user *entity.User) error
 	SaveTx(tx *sql.Tx, user *entity.User) error
 	FindByToken(token string) (*entity.User, error)
 	FindByID(id int) (*entity.User, error)
 }
 
-type userRepository struct {
+type userRepo struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
-	return &userRepository{db: db}
+func NewUserRepo(db *sql.DB) UserRepo {
+	return &userRepo{db: db}
 }
 
-func (r *userRepository) Save(user *entity.User) error {
+func (r *userRepo) Save(user *entity.User) error {
 	query := `
 		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
@@ -31,7 +31,7 @@ func (r *userRepository) Save(user *entity.User) error {
 	return err
 }
 
-func (r *userRepository) SaveTx(tx *sql.Tx, user *entity.User) error {
+func (r *userRepo) SaveTx(tx *sql.Tx, user *entity.User) error {
 	query := `
 		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
@@ -42,7 +42,7 @@ func (r *userRepository) SaveTx(tx *sql.Tx, user *entity.User) error {
 	return err
 }
 
-func (r *userRepository) FindByToken(token string) (*entity.User, error) {
+func (r *userRepo) FindByToken(token string) (*entity.User, error) {
 	query := "SELECT id, name, highscore, coin, token FROM users WHERE token = ?"
 	row := r.db.QueryRow(query, token)
 	user := &entity.User{}
@@ -53,7 +53,7 @@ func (r *userRepository) FindByToken(token string) (*entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepository) FindByID(id int) (*entity.User, error) {
+func (r *userRepo) FindByID(id int) (*entity.User, error) {
 	query := "SELECT id, name, highscore, coin, token FROM users WHERE id = ?"
 	row := r.db.QueryRow(query, id)
 	user := &entity.User{}

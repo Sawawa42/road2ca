@@ -20,10 +20,10 @@ type RankingService interface {
 
 type rankingService struct {
 	rankingRepo repository.RankingRepo
-	userRepo    repository.UserRepository
+	userRepo    repository.UserRepo
 }
 
-func NewRankingService(userRepo repository.UserRepository, rankingRepo repository.RankingRepo) RankingService {
+func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) RankingService {
 	return &rankingService{
 		rankingRepo: rankingRepo,
 		userRepo:    userRepo,
