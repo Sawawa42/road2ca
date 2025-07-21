@@ -2,12 +2,13 @@ package repository
 
 import (
 	"database/sql"
+
 	"github.com/redis/go-redis/v9"
 )
 
 type Repositories struct {
 	User       UserRepository
-	Item       ItemRepository
+	Item       ItemRepo
 	Collection CollectionRepo
 	Ranking    RankingRepository
 	DB         *sql.DB

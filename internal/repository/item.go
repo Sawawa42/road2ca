@@ -5,30 +5,31 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"road2ca/internal/entity"
+
+	"github.com/redis/go-redis/v9"
 )
 
-type ItemRepository interface {
+type ItemRepo interface {
 	SaveToCache(items []*entity.Item) error
 	FindAllFromDB() ([]*entity.Item, error)
 	FindAllFromCache() ([]*entity.Item, error)
 }
 
-type itemRepository struct {
+type itemRepo struct {
 	db  *sql.DB
 	rdb *redis.Client
 }
 
-func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepository {
-	return &itemRepository{
+func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepo {
+	return &itemRepo{
 		db:  db,
 		rdb: rdb,
 	}
 }
 
 // SaveToCache アイテム情報をキャッシュする
-func (r *itemRepository) SaveToCache(items []*entity.Item) error {
+func (r *itemRepo) SaveToCache(items []*entity.Item) error {
 	pipe := r.rdb.Pipeline()
 	ctx := context.Background()
 	for _, item := range items {
@@ -47,7 +48,7 @@ func (r *itemRepository) SaveToCache(items []*entity.Item) error {
 }
 
 // FindAllFromDB DBから全てのアイテムを取得する
-func (r *itemRepository) FindAllFromDB() ([]*entity.Item, error) {
+func (r *itemRepo) FindAllFromDB() ([]*entity.Item, error) {
 	query := "SELECT * FROM items"
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -67,7 +68,7 @@ func (r *itemRepository) FindAllFromDB() ([]*entity.Item, error) {
 }
 
 // FindAllFromCache キャッシュから全てのアイテムを取得する
-func (r *itemRepository) FindAllFromCache() ([]*entity.Item, error) {
+func (r *itemRepo) FindAllFromCache() ([]*entity.Item, error) {
 	ctx := context.Background()
 	keys, err := r.rdb.Keys(ctx, "item:*").Result()
 	if err != nil {

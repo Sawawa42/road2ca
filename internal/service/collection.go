@@ -21,10 +21,10 @@ type CollectionService interface {
 
 type collectionService struct {
 	collectionRepo repository.CollectionRepo
-	itemRepo       repository.ItemRepository
+	itemRepo       repository.ItemRepo
 }
 
-func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo repository.ItemRepository) CollectionService {
+func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo repository.ItemRepo) CollectionService {
 	return &collectionService{
 		collectionRepo: collectionRepo,
 		itemRepo:       itemRepo,

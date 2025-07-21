@@ -9,10 +9,10 @@ type ItemService interface {
 }
 
 type itemService struct {
-	itemRepo repository.ItemRepository
+	itemRepo repository.ItemRepo
 }
 
-func NewItemService(itemRepo repository.ItemRepository) ItemService {
+func NewItemService(itemRepo repository.ItemRepo) ItemService {
 	if err := setToCache(itemRepo); err != nil {
 		panic(fmt.Sprintf("failed to set items to cache: %v", err))
 	}
@@ -22,7 +22,7 @@ func NewItemService(itemRepo repository.ItemRepository) ItemService {
 	}
 }
 
-func setToCache(itemRepo repository.ItemRepository) error {
+func setToCache(itemRepo repository.ItemRepo) error {
 	items, err := itemRepo.FindAllFromDB()
 	if err != nil {
 		return fmt.Errorf("failed to find items from MySQL: %w", err)
