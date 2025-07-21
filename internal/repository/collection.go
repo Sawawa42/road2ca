@@ -6,21 +6,21 @@ import (
 	"strings"
 )
 
-type CollectionRepository interface {
+type CollectionRepo interface {
 	Save(tx *sql.Tx, collections []*entity.Collection) error
-	FindAllByUserID(userID int) ([]*entity.Collection, error)
+	FindByUserID(userID int) ([]*entity.Collection, error)
 }
 
-type collectionRepository struct {
+type collectionRepo struct {
 	db *sql.DB
 }
 
-func NewCollectionRepository(db *sql.DB) CollectionRepository {
-	return &collectionRepository{db: db}
+func NewCollectionRepo(db *sql.DB) CollectionRepo {
+	return &collectionRepo{db: db}
 }
 
 // Save コレクションをDBに保存する
-func (r *collectionRepository) Save(tx *sql.Tx, collections []*entity.Collection) error {
+func (r *collectionRepo) Save(tx *sql.Tx, collections []*entity.Collection) error {
 	if len(collections) == 0 {
 		return nil
 	}
@@ -39,8 +39,8 @@ func (r *collectionRepository) Save(tx *sql.Tx, collections []*entity.Collection
 	return err
 }
 
-// FindAllByUserID ユーザーIDに紐づくコレクションを全て取得する
-func (r *collectionRepository) FindAllByUserID(userID int) ([]*entity.Collection, error) {
+// FindByUserID ユーザーIDに紐づくコレクションを取得する
+func (r *collectionRepo) FindByUserID(userID int) ([]*entity.Collection, error) {
 	query := `SELECT id, userId, itemId FROM collections WHERE userId = ?`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {

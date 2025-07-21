@@ -20,11 +20,11 @@ type CollectionService interface {
 }
 
 type collectionService struct {
-	collectionRepo repository.CollectionRepository
+	collectionRepo repository.CollectionRepo
 	itemRepo       repository.ItemRepository
 }
 
-func NewCollectionService(collectionRepo repository.CollectionRepository, itemRepo repository.ItemRepository) CollectionService {
+func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo repository.ItemRepository) CollectionService {
 	return &collectionService{
 		collectionRepo: collectionRepo,
 		itemRepo:       itemRepo,
@@ -44,7 +44,7 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}
 	// ユーザーのコレクションを取得
-	collections, err := s.collectionRepo.FindAllByUserID(user.ID)
+	collections, err := s.collectionRepo.FindByUserID(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}

@@ -88,7 +88,7 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		}
 	}
 
-	collections, err := s.repo.Collection.FindAllByUserID(user.ID)
+	collections, err := s.repo.Collection.FindByUserID(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
