@@ -3,10 +3,11 @@ package repository
 import (
 	"database/sql"
 	"road2ca/internal/entity"
+	"strings"
 )
 
 type CollectionRepository interface {
-	Save(collection *entity.Collection) error
+	Save(tx *sql.Tx, collections []*entity.Collection) error
 	FindAllByUserID(userID int) ([]*entity.Collection, error)
 }
 
@@ -19,16 +20,23 @@ func NewCollectionRepository(db *sql.DB) CollectionRepository {
 }
 
 // Save コレクションをDBに保存する
-func (r *collectionRepository) Save(collection *entity.Collection) error {
-	query := `
-		INSERT INTO collections (userId, itemId) VALUES (?, ?)
-		ON DUPLICATE KEY UPDATE
-		itemId = VALUES(itemId)`
-	_, err := r.db.Exec(query, collection.UserID, collection.ItemID)
-	if err != nil {
-		return err
+func (r *collectionRepository) Save(tx *sql.Tx, collections []*entity.Collection) error {
+	if len(collections) == 0 {
+		return nil
 	}
-	return nil
+
+	query := "INSERT INTO collections (userId, itemId) VALUES "
+	var placeholders []string
+	var args []interface{}
+	for _, collection := range collections {
+		placeholders = append(placeholders, "(?, ?)")
+		args = append(args, collection.UserID, collection.ItemID)
+	}
+	query += strings.Join(placeholders, ", ")
+	query += " ON DUPLICATE KEY UPDATE itemId = VALUES(itemId)"
+
+	_, err := tx.Exec(query, args...)
+	return err
 }
 
 // FindAllByUserID ユーザーIDに紐づくコレクションを全て取得する

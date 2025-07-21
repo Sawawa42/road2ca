@@ -32,6 +32,7 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 	router.GET("/collection/list", h.Collection.HandleGetCollectionList)
 	router.GET("/ranking/list", h.Ranking.HandleGetRankingList)
 	router.POST("/game/finish", h.Game.HandleGameFinish)
+	router.POST("/gacha/draw", h.Gacha.HandleGachaDraw)
 
 	// サーバを起動
 	log.Println("Server running...")
