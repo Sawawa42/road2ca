@@ -17,7 +17,7 @@ type Repositories struct {
 func New(db *sql.DB, rdb *redis.Client) *Repositories {
 	return &Repositories{
 		User:       NewUserRepository(db),
-		Item:       NewItemRepository(db, rdb),
+		Item:       NewItemRepo(db, rdb),
 		Collection: NewCollectionRepo(db),
 		Ranking:    NewRankingRepository(rdb),
 		DB:         db,

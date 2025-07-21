@@ -23,7 +23,7 @@ func NewItemService(itemRepo repository.ItemRepo) ItemService {
 }
 
 func setToCache(itemRepo repository.ItemRepo) error {
-	items, err := itemRepo.FindAllFromDB()
+	items, err := itemRepo.FindFromDB()
 	if err != nil {
 		return fmt.Errorf("failed to find items from MySQL: %w", err)
 	}

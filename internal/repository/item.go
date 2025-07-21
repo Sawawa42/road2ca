@@ -12,8 +12,8 @@ import (
 
 type ItemRepo interface {
 	SaveToCache(items []*entity.Item) error
-	FindAllFromDB() ([]*entity.Item, error)
-	FindAllFromCache() ([]*entity.Item, error)
+	FindFromDB() ([]*entity.Item, error)
+	FindFromCache() ([]*entity.Item, error)
 }
 
 type itemRepo struct {
@@ -21,7 +21,7 @@ type itemRepo struct {
 	rdb *redis.Client
 }
 
-func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepo {
+func NewItemRepo(db *sql.DB, rdb *redis.Client) ItemRepo {
 	return &itemRepo{
 		db:  db,
 		rdb: rdb,
@@ -47,8 +47,8 @@ func (r *itemRepo) SaveToCache(items []*entity.Item) error {
 	return nil
 }
 
-// FindAllFromDB DBから全てのアイテムを取得する
-func (r *itemRepo) FindAllFromDB() ([]*entity.Item, error) {
+// FindFromDB DBからアイテムを取得する
+func (r *itemRepo) FindFromDB() ([]*entity.Item, error) {
 	query := "SELECT * FROM items"
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -67,8 +67,8 @@ func (r *itemRepo) FindAllFromDB() ([]*entity.Item, error) {
 	return items, nil
 }
 
-// FindAllFromCache キャッシュから全てのアイテムを取得する
-func (r *itemRepo) FindAllFromCache() ([]*entity.Item, error) {
+// FindFromCache キャッシュからアイテムを取得する
+func (r *itemRepo) FindFromCache() ([]*entity.Item, error) {
 	ctx := context.Background()
 	keys, err := r.rdb.Keys(ctx, "item:*").Result()
 	if err != nil {
