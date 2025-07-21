@@ -18,10 +18,10 @@ type GameService interface {
 
 type gameService struct {
 	userRepo    repository.UserRepository
-	rankingRepo repository.RankingRepository
+	rankingRepo repository.RankingRepo
 }
 
-func NewGameService(userRepo repository.UserRepository, rankingRepo repository.RankingRepository) GameService {
+func NewGameService(userRepo repository.UserRepository, rankingRepo repository.RankingRepo) GameService {
 	return &gameService{
 		userRepo:    userRepo,
 		rankingRepo: rankingRepo,
@@ -43,7 +43,7 @@ func (s *gameService) Finish(c *minigin.Context, score int) (int, error) {
 		return 0, err
 	}
 
-	if err := s.rankingRepo.SaveToCache(user); err != nil {
+	if err := s.rankingRepo.Save(user); err != nil {
 		return 0, err
 	}
 

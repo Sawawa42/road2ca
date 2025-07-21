@@ -10,7 +10,7 @@ type Repositories struct {
 	User       UserRepository
 	Item       ItemRepo
 	Collection CollectionRepo
-	Ranking    RankingRepository
+	Ranking    RankingRepo
 	DB         *sql.DB
 }
 
@@ -19,7 +19,7 @@ func New(db *sql.DB, rdb *redis.Client) *Repositories {
 		User:       NewUserRepository(db),
 		Item:       NewItemRepo(db, rdb),
 		Collection: NewCollectionRepo(db),
-		Ranking:    NewRankingRepository(rdb),
+		Ranking:    NewRankingRepo(rdb),
 		DB:         db,
 	}
 }

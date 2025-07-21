@@ -19,11 +19,11 @@ type RankingService interface {
 }
 
 type rankingService struct {
-	rankingRepo repository.RankingRepository
+	rankingRepo repository.RankingRepo
 	userRepo    repository.UserRepository
 }
 
-func NewRankingService(userRepo repository.UserRepository, rankingRepo repository.RankingRepository) RankingService {
+func NewRankingService(userRepo repository.UserRepository, rankingRepo repository.RankingRepo) RankingService {
 	return &rankingService{
 		rankingRepo: rankingRepo,
 		userRepo:    userRepo,
@@ -32,7 +32,7 @@ func NewRankingService(userRepo repository.UserRepository, rankingRepo repositor
 
 // Update updates the user's ranking based on their high score.
 func (s *rankingService) Update(user *entity.User) error {
-	if err := s.rankingRepo.SaveToCache(user); err != nil {
+	if err := s.rankingRepo.Save(user); err != nil {
 		return fmt.Errorf("failed to save ranking to cache: %w", err)
 	}
 
@@ -45,7 +45,7 @@ func (s *rankingService) GetInRange(start, end int) ([]*Ranking, error) {
 		return nil, fmt.Errorf("invalid range: start=%d, end=%d", start, end)
 	}
 
-	rankings, err := s.rankingRepo.FindInRangeFromCache(start, end)
+	rankings, err := s.rankingRepo.FindInRange(start, end)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rankings in range %d-%d: %w", start, end, err)
 	}
