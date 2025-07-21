@@ -41,7 +41,7 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 	}
 
 	// TODO: endは設定から取得する予定
-	res, err := h.rankingService.GetInRange(start, 10)
+	res, err := h.rankingService.GetRankingInRange(start, 10)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
@@ -50,7 +50,7 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, minigin.H{
-		"ranks": res,
+	c.JSON(http.StatusOK, &service.GetRankingListResponseDTO{
+		Rankings: res,
 	})
 }
