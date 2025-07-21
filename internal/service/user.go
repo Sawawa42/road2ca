@@ -9,29 +9,29 @@ import (
 	"road2ca/pkg/minigin"
 )
 
-type UserDTO struct {
+type GetUserResponseDTO struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
 	HighScore int    `json:"highScore"`
 	Coin      int    `json:"coin"`
 }
 
-type UserCreateResponseDTO struct {
+type CreateUserResponseDTO struct {
 	Token string `json:"token"`
 }
 
-type UserCreateRequestDTO struct {
+type CreateUserRequestDTO struct {
 	Name string `json:"name"`
 }
 
-type UserUpdateRequestDTO struct {
+type UpdateUserRequestDTO struct {
 	Name string `json:"name"`
 }
 
 type UserService interface {
-	Create(name string) (*UserCreateResponseDTO, error)
-	Get(c *minigin.Context) (*UserDTO, error)
-	UpdateName(c *minigin.Context, name string) error
+	CreateUser(name string) (*CreateUserResponseDTO, error)
+	GetUser(c *minigin.Context) (*GetUserResponseDTO, error)
+	UpdateUser(c *minigin.Context, name string) error
 }
 
 type userService struct {
@@ -44,7 +44,7 @@ func NewUserService(userRepo repository.UserRepo) UserService {
 	}
 }
 
-func (s *userService) Create(name string) (*UserCreateResponseDTO, error) {
+func (s *userService) CreateUser(name string) (*CreateUserResponseDTO, error) {
 	token := fmt.Sprintf("%x", md5.Sum([]byte(name)))
 	user := &entity.User{
 		Name:      name,
@@ -55,18 +55,18 @@ func (s *userService) Create(name string) (*UserCreateResponseDTO, error) {
 	if err := s.userRepo.Save(user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
-	return &UserCreateResponseDTO{
+	return &CreateUserResponseDTO{
 		Token: token,
 	}, nil
 }
 
-func (s *userService) Get(c *minigin.Context) (*UserDTO, error) {
+func (s *userService) GetUser(c *minigin.Context) (*GetUserResponseDTO, error) {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user")
 	}
 
-	return &UserDTO{
+	return &GetUserResponseDTO{
 		ID:        user.ID,
 		Name:      user.Name,
 		HighScore: user.HighScore,
@@ -74,7 +74,7 @@ func (s *userService) Get(c *minigin.Context) (*UserDTO, error) {
 	}, nil
 }
 
-func (s *userService) UpdateName(c *minigin.Context, name string) error {
+func (s *userService) UpdateUser(c *minigin.Context, name string) error {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return fmt.Errorf("failed to get user")
