@@ -41,7 +41,7 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	}
 
 	// ゲーム終了処理を実行
-	responseCoin, err := h.gameService.Finish(c, req.Score)
+	res, err := h.gameService.FinalizeGame(c, req.Score)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
@@ -50,7 +50,5 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	}
 
 	// 現在のコイン数を送信
-	c.JSON(http.StatusOK, minigin.H{
-		"coin": responseCoin,
-	})
+	c.JSON(http.StatusOK, res)
 }
