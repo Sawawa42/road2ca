@@ -107,7 +107,7 @@ func seed(r *repository.Repositories) error {
 		if err := r.User.Save(user); err != nil {
 			return err
 		}
-		if err := r.Ranking.SaveToCache(user); err != nil {
+		if err := r.Ranking.Save(user); err != nil {
 			return err
 		}
 	}
