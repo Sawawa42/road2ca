@@ -8,13 +8,18 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+	"database/sql"
 )
 
-type GachaRequestBody struct {
+type DrawGachaRequestDTO struct {
 	Times int `json:"times"` // ガチャを引く回数
 }
 
-type GachaResult struct {
+type DrawGachaResponseDTO struct {
+	Results []GachaItemDTO `json:"results"`
+}
+
+type GachaItemDTO struct {
 	CollectionID int    `json:"collectionID"`
 	Name         string `json:"name"`
 	Rarity      int    `json:"rarity"`
@@ -22,17 +27,25 @@ type GachaResult struct {
 }
 
 type GachaService interface {
-	Draw(c *minigin.Context, times int) ([]GachaResult, error)
+	DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error)
 }
 
 type gachaService struct {
-	repo *repository.Repositories
+	itemRepo       repository.ItemRepo
+	collectionRepo repository.CollectionRepo
+	userRepo repository.UserRepo
+	db 	 *sql.DB
 	totalWeight int
 	randGen *rand.Rand
 }
 
-func NewGachaService(repo *repository.Repositories) GachaService {
-	items, err := repo.Item.Find()
+func NewGachaService(
+	itemRepo repository.ItemRepo,
+	collectionRepo repository.CollectionRepo,
+	userRepo repository.UserRepo,
+	db       *sql.DB,
+) GachaService {
+	items, err := itemRepo.Find()
 	if err != nil {
 		panic(fmt.Sprintf("failed to get items from cache: %v", err))
 	}
@@ -52,25 +65,29 @@ func NewGachaService(repo *repository.Repositories) GachaService {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	return &gachaService{
-		repo: repo,
-		totalWeight: totalWeight,
-		randGen: r,
+		itemRepo:       itemRepo,
+		collectionRepo: collectionRepo,
+		userRepo:      userRepo,
+		db:            db,
+		totalWeight:   totalWeight,
+		randGen:      r,
 	}
 }
 
-func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error) {
+func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error) {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	const GachaCoinConsumption = 100 // 仮でハードコード
+	// TODO: ガチャの消費コイン数は設定から取得する
+	const GachaCoinConsumption = 100
 	if user.Coin < GachaCoinConsumption * times {
 		return nil, fmt.Errorf("not enough coins")
 	}
 
 	// アイテムを取得
-	items, err := s.repo.Item.Find()
+	items, err := s.itemRepo.Find()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}
@@ -88,7 +105,7 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		}
 	}
 
-	collections, err := s.repo.Collection.FindByUserID(user.ID)
+	collections, err := s.collectionRepo.FindByUserID(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
@@ -99,10 +116,10 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 	}
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
-	var results []GachaResult // 結果を格納するスライス
+	var results []GachaItemDTO // 結果を格納するスライス
 	for _, item := range pickedItems {
 		isNew := !hasItemsMap[item.ID]
-		results = append(results, GachaResult{
+		results = append(results, GachaItemDTO{
 			CollectionID: item.ID,
 			Name:         item.Name,
 			Rarity:       item.Rarity,
@@ -117,18 +134,18 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 	}
 
 	// トランザクション開始
-	tx, err := s.repo.DB.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
-	err = s.repo.Collection.Save(tx, insertNewCollections)
+	err = s.collectionRepo.Save(tx, insertNewCollections)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save collections: %w", err)
 	}
 	user.Coin -= GachaCoinConsumption * times
-	err = s.repo.User.SaveTx(tx, user)
+	err = s.userRepo.SaveTx(tx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save user: %w", err)
 	}
@@ -136,5 +153,7 @@ func (s *gachaService) Draw(c *minigin.Context, times int) ([]GachaResult, error
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return results, nil
+	return &DrawGachaResponseDTO{
+		Results: results,
+	}, nil
 }
