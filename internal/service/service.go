@@ -15,7 +15,7 @@ type Services struct {
 	Gacha      GachaService
 }
 
-func New(repo *repository.Repositories) *Services {
+func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services {
 	return &Services{
 		User:       NewUserService(repo.User),
 		Auth:       NewAuthService(repo.User),
@@ -24,6 +24,6 @@ func New(repo *repository.Repositories) *Services {
 		Collection: NewCollectionService(repo.Collection, repo.Item),
 		Ranking:    NewRankingService(repo.User, repo.Ranking),
 		Game:       NewGameService(repo.User, repo.Ranking),
-		Gacha:      NewGachaService(repo.Item, repo.Collection, repo.User, repo.DB),
+		Gacha:      NewGachaService(repo.Item, repo.Collection, repo.User, repo.DB, gachaProps),
 	}
 }

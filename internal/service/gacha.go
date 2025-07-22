@@ -7,7 +7,6 @@ import (
 	"road2ca/internal/entity"
 	"fmt"
 	"math/rand"
-	"time"
 	"database/sql"
 )
 
@@ -24,6 +23,11 @@ type GachaItemDTO struct {
 	Name         string `json:"name"`
 	Rarity      int    `json:"rarity"`
 	IsNew       bool   `json:"isNew"`
+}
+
+type GachaServiceProps struct {
+	TotalWeight int
+	RandGen     *rand.Rand
 }
 
 type GachaService interface {
@@ -44,33 +48,15 @@ func NewGachaService(
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
 	db       *sql.DB,
+	gachaProps *GachaServiceProps,
 ) GachaService {
-	items, err := itemRepo.Find()
-	if err != nil {
-		panic(fmt.Sprintf("failed to get items from cache: %v", err))
-	}
-	if len(items) == 0 {
-		panic("no items found in cache")
-	}
-	totalWeight := 0
-	for _, item := range items {
-		if item.Weight == 0 {
-			continue // 重みが0のアイテムは無視する
-		} else if item.Weight < 0 {
-			panic(fmt.Sprintf("item %d has invalid weight %d", item.ID, item.Weight))
-		}
-		totalWeight += item.Weight
-	}
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	return &gachaService{
 		itemRepo:       itemRepo,
 		collectionRepo: collectionRepo,
 		userRepo:      userRepo,
 		db:            db,
-		totalWeight:   totalWeight,
-		randGen:      r,
+		totalWeight:   gachaProps.TotalWeight,
+		randGen:      gachaProps.RandGen,
 	}
 }
 
