@@ -24,7 +24,7 @@ func NewGachaHandler(gachaService service.GachaService) GachaHandler {
 
 // HandleGachaDraw ガチャを引く処理
 func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
-	var req service.GachaRequestBody
+	var req service.DrawGachaRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
 		c.JSON(http.StatusBadRequest, minigin.H{
@@ -40,7 +40,7 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 		return
 	}
 
-	results, err := h.gachaService.Draw(c, req.Times)
+	res, err := h.gachaService.DrawGacha(c, req.Times)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Failed to draw gacha",
@@ -48,7 +48,5 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, minigin.H{
-		"results": results,
-	})
+	c.JSON(http.StatusOK, res)
 }

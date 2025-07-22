@@ -2,29 +2,29 @@ package repository
 
 import (
 	"context"
-	"github.com/redis/go-redis/v9"
 	"road2ca/internal/entity"
 	"strconv"
+
+	"github.com/redis/go-redis/v9"
 )
 
-type RankingRepository interface {
-	SaveToCache(user *entity.User) error
-	FindInRangeFromCache(start, end int) ([]*entity.Ranking, error)
+type RankingRepo interface {
+	Save(user *entity.User) error
+	FindInRange(start, end int) ([]*entity.Ranking, error)
 }
 
-type rankingRepository struct {
+type rankingRepo struct {
 	rdb *redis.Client
 }
 
-func NewRankingRepository(rdb *redis.Client) RankingRepository {
-	return &rankingRepository{
+func NewRankingRepo(rdb *redis.Client) RankingRepo {
+	return &rankingRepo{
 		rdb: rdb,
 	}
 }
 
-// SaveToCache ランキング情報をキャッシュに保存する
-// 保存時(/game/finish)、contextから取得したuserのhighscoreを更新したuserを引数に取る
-func (r *rankingRepository) SaveToCache(user *entity.User) error {
+// Save ランキング情報をキャッシュに保存する
+func (r *rankingRepo) Save(user *entity.User) error {
 	ctx := context.Background()
 	// sorted setを使用してランキングを保存する
 	if err := r.rdb.ZAdd(ctx, "rankings", redis.Z{
@@ -38,8 +38,8 @@ func (r *rankingRepository) SaveToCache(user *entity.User) error {
 	return nil
 }
 
-// FindInRangeFromCache キャッシュから指定範囲のランキングを取得する
-func (r *rankingRepository) FindInRangeFromCache(start, end int) ([]*entity.Ranking, error) {
+// FindInRange キャッシュから指定範囲のランキングを取得する
+func (r *rankingRepo) FindInRange(start, end int) ([]*entity.Ranking, error) {
 	ctx := context.Background()
 	// startは1から始まるので、Redisのインデックスに合わせて-1している
 	scores, err := r.rdb.ZRevRangeWithScores(ctx, "rankings", int64(start-1), int64(end-1)).Result()

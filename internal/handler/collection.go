@@ -32,5 +32,7 @@ func (h *collectionHandler) HandleGetCollectionList(c *minigin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, &service.CollectionListResponseDTO{
+		Collections: res,
+	})
 }

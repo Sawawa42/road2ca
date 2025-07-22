@@ -8,7 +8,11 @@ import (
 	"road2ca/pkg/minigin"
 )
 
-type CollectionsResponse struct {
+type CollectionListResponseDTO struct {
+	Collections []*CollectionListItemDTO `json:"collections"`
+}
+
+type CollectionListItemDTO struct {
 	CollectionID int    `json:"collectionID"`
 	Name         string `json:"name"`
 	Rarity       int    `json:"rarity"`
@@ -16,35 +20,35 @@ type CollectionsResponse struct {
 }
 
 type CollectionService interface {
-	GetCollectionList(c *minigin.Context) ([]*CollectionsResponse, error)
+	GetCollectionList(c *minigin.Context) ([]*CollectionListItemDTO, error)
 }
 
 type collectionService struct {
-	collectionRepo repository.CollectionRepository
-	itemRepo       repository.ItemRepository
+	collectionRepo repository.CollectionRepo
+	itemRepo       repository.ItemRepo
 }
 
-func NewCollectionService(collectionRepo repository.CollectionRepository, itemRepo repository.ItemRepository) CollectionService {
+func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo repository.ItemRepo) CollectionService {
 	return &collectionService{
 		collectionRepo: collectionRepo,
 		itemRepo:       itemRepo,
 	}
 }
 
-func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*CollectionsResponse, error) {
+func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*CollectionListItemDTO, error) {
 	// ユーザー情報をコンテキストから取得
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	// 全てのアイテムをキャッシュから取得
-	items, err := s.itemRepo.FindAllFromCache()
+	// アイテムを取得
+	items, err := s.itemRepo.Find()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items: %w", err)
 	}
 	// ユーザーのコレクションを取得
-	collections, err := s.collectionRepo.FindAllByUserID(user.ID)
+	collections, err := s.collectionRepo.FindByUserID(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
@@ -55,11 +59,11 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		collectionItemMap[collection.ItemID] = true
 	}
 
-	res := make([]*CollectionsResponse, 0, len(items))
+	res := make([]*CollectionListItemDTO, 0, len(items))
 	for _, item := range items {
 		// アイテム所持を判定
 		hasItem := collectionItemMap[item.ID]
-		res = append(res, &CollectionsResponse{
+		res = append(res, &CollectionListItemDTO{
 			CollectionID: item.ID,
 			Name:         item.Name,
 			Rarity:       item.Rarity,

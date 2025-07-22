@@ -12,9 +12,12 @@ import (
 	"road2ca/internal/service"
 
 	"context"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
 	"log"
+	"math/rand"
+	"time"
 )
 
 var (
@@ -77,7 +80,13 @@ func initRedis() *redis.Client {
 
 func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
 	r := repository.New(db, rdb)
-	s := service.New(r)
+
+	gachaProps, err := loadGachaServiceProps(r.Item)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	s := service.New(r, gachaProps)
 	h := handler.New(s)
 	m := middleware.New(s)
 
@@ -86,9 +95,42 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 		return nil, nil, err
 	}
 
+	// itemをキャッシュ
+	if err := s.Item.SetItemToCache(); err != nil {
+		return nil, nil, err
+	}
+
 	return h, m, nil
 }
 
+func loadGachaServiceProps(itemRepo repository.ItemRepo) (*service.GachaServiceProps, error) {
+	items, err := itemRepo.Find()
+	if err != nil {
+		return nil, err
+	}
+	if len(items) == 0 {
+		return nil, fmt.Errorf("no items found in cache")
+	}
+
+	totalWeight := 0
+	for _, item := range items {
+		if item.Weight == 0 {
+			continue // 重みが0のアイテムは無視する
+		} else if item.Weight < 0 {
+			return nil, fmt.Errorf("item has invalid weight: %s", item.Name)
+		}
+		totalWeight += item.Weight
+	}
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	return &service.GachaServiceProps{
+		TotalWeight: totalWeight,
+		RandGen:     r,
+	}, nil
+}
+
+// TODO: mainとは別cmdに切り出す
 func seed(r *repository.Repositories) error {
 	users := []*entity.User{
 		{ID: 2, Name: "Alice", HighScore: 100, Token: "alice"},
@@ -107,7 +149,7 @@ func seed(r *repository.Repositories) error {
 		if err := r.User.Save(user); err != nil {
 			return err
 		}
-		if err := r.Ranking.SaveToCache(user); err != nil {
+		if err := r.Ranking.Save(user); err != nil {
 			return err
 		}
 	}

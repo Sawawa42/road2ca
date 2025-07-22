@@ -2,11 +2,14 @@ package service
 
 import (
 	"fmt"
-	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 )
 
-type Ranking struct {
+type GetRankingListResponseDTO struct {
+	Rankings []*RankingItemDTO `json:"ranks"`
+}
+
+type RankingItemDTO struct {
 	UserID   int    `json:"userId"`
 	UserName string `json:"userName"`
 	Rank     int    `json:"rank"`
@@ -14,49 +17,38 @@ type Ranking struct {
 }
 
 type RankingService interface {
-	Update(user *entity.User) error
-	GetInRange(start, end int) ([]*Ranking, error)
+	GetRankingInRange(start, end int) ([]*RankingItemDTO, error)
 }
 
 type rankingService struct {
-	rankingRepo repository.RankingRepository
-	userRepo    repository.UserRepository
+	rankingRepo repository.RankingRepo
+	userRepo    repository.UserRepo
 }
 
-func NewRankingService(userRepo repository.UserRepository, rankingRepo repository.RankingRepository) RankingService {
+func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) RankingService {
 	return &rankingService{
 		rankingRepo: rankingRepo,
 		userRepo:    userRepo,
 	}
 }
 
-// Update updates the user's ranking based on their high score.
-func (s *rankingService) Update(user *entity.User) error {
-	if err := s.rankingRepo.SaveToCache(user); err != nil {
-		return fmt.Errorf("failed to save ranking to cache: %w", err)
-	}
-
-	return nil
-}
-
-// GetInRange returns rankings in the specified range.
-func (s *rankingService) GetInRange(start, end int) ([]*Ranking, error) {
+func (s *rankingService) GetRankingInRange(start, end int) ([]*RankingItemDTO, error) {
 	if start < 0 || end < 0 || start > end {
 		return nil, fmt.Errorf("invalid range: start=%d, end=%d", start, end)
 	}
 
-	rankings, err := s.rankingRepo.FindInRangeFromCache(start, end)
+	rankings, err := s.rankingRepo.FindInRange(start, end)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rankings in range %d-%d: %w", start, end, err)
 	}
 
-	var result []*Ranking
+	var result []*RankingItemDTO
 	for _, r := range rankings {
 		user, err := s.userRepo.FindByID(r.UserID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find user by ID %d: %w", r.UserID, err)
 		}
-		result = append(result, &Ranking{
+		result = append(result, &RankingItemDTO{
 			UserID:   r.UserID,
 			UserName: user.Name,
 			Rank:     r.Rank,

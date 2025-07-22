@@ -6,24 +6,21 @@ import (
 )
 
 type ItemService interface {
+	SetItemToCache() error
 }
 
 type itemService struct {
-	itemRepo repository.ItemRepository
+	itemRepo repository.ItemRepo
 }
 
-func NewItemService(itemRepo repository.ItemRepository) ItemService {
-	if err := setToCache(itemRepo); err != nil {
-		panic(fmt.Sprintf("failed to set items to cache: %v", err))
-	}
-
+func NewItemService(itemRepo repository.ItemRepo) ItemService {
 	return &itemService{
 		itemRepo: itemRepo,
 	}
 }
 
-func setToCache(itemRepo repository.ItemRepository) error {
-	items, err := itemRepo.FindAllFromDB()
+func (s *itemService) SetItemToCache() error {
+	items, err := s.itemRepo.Find()
 	if err != nil {
 		return fmt.Errorf("failed to find items from MySQL: %w", err)
 	}
@@ -31,7 +28,7 @@ func setToCache(itemRepo repository.ItemRepository) error {
 		return fmt.Errorf("no items found in MySQL")
 	}
 
-	if err := itemRepo.SaveToCache(items); err != nil {
+	if err := s.itemRepo.Save(items); err != nil {
 		return fmt.Errorf("failed to cache items to Redis: %w", err)
 	}
 

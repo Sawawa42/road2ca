@@ -5,30 +5,30 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"road2ca/internal/entity"
+
+	"github.com/redis/go-redis/v9"
 )
 
-type ItemRepository interface {
-	SaveToCache(items []*entity.Item) error
-	FindAllFromDB() ([]*entity.Item, error)
-	FindAllFromCache() ([]*entity.Item, error)
+type ItemRepo interface {
+	Save(items []*entity.Item) error
+	Find() ([]*entity.Item, error)
 }
 
-type itemRepository struct {
+type itemRepo struct {
 	db  *sql.DB
 	rdb *redis.Client
 }
 
-func NewItemRepository(db *sql.DB, rdb *redis.Client) ItemRepository {
-	return &itemRepository{
+func NewItemRepo(db *sql.DB, rdb *redis.Client) ItemRepo {
+	return &itemRepo{
 		db:  db,
 		rdb: rdb,
 	}
 }
 
-// SaveToCache アイテム情報をキャッシュする
-func (r *itemRepository) SaveToCache(items []*entity.Item) error {
+// Save アイテム情報をキャッシュする
+func (r *itemRepo) Save(items []*entity.Item) error {
 	pipe := r.rdb.Pipeline()
 	ctx := context.Background()
 	for _, item := range items {
@@ -46,8 +46,34 @@ func (r *itemRepository) SaveToCache(items []*entity.Item) error {
 	return nil
 }
 
-// FindAllFromDB DBから全てのアイテムを取得する
-func (r *itemRepository) FindAllFromDB() ([]*entity.Item, error) {
+// Find アイテム情報を取得する。キャッシュに存在しない場合はDBから取得する
+func (r *itemRepo) Find() ([]*entity.Item, error) {
+	ctx := context.Background()
+	keys, err := r.rdb.Keys(ctx, "item:*").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get item keys: %w", err)
+	}
+
+	var items []*entity.Item
+	if len(keys) == 0 {
+		// キャッシュにアイテムがない場合DBから取得
+		items, err = r.findFromDB()
+		if err != nil {
+			return nil, fmt.Errorf("failed to find items from DB: %w", err)
+		}
+	} else {
+		// キャッシュにアイテムがある場合はキャッシュから取得
+		items, err = r.findFromCache()
+		if err != nil {
+			return nil, fmt.Errorf("failed to find items from cache: %w", err)
+		}
+	}
+
+	return items, nil
+}
+
+// findFromDB DBからアイテムを取得する
+func (r *itemRepo) findFromDB() ([]*entity.Item, error) {
 	query := "SELECT * FROM items"
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -66,8 +92,8 @@ func (r *itemRepository) FindAllFromDB() ([]*entity.Item, error) {
 	return items, nil
 }
 
-// FindAllFromCache キャッシュから全てのアイテムを取得する
-func (r *itemRepository) FindAllFromCache() ([]*entity.Item, error) {
+// findFromCache キャッシュからアイテムを取得する
+func (r *itemRepo) findFromCache() ([]*entity.Item, error) {
 	ctx := context.Background()
 	keys, err := r.rdb.Keys(ctx, "item:*").Result()
 	if err != nil {
@@ -78,9 +104,6 @@ func (r *itemRepository) FindAllFromCache() ([]*entity.Item, error) {
 	for _, key := range keys {
 		val, err := r.rdb.Get(ctx, key).Result()
 		if err != nil {
-			if err == redis.Nil {
-				continue // アイテムが存在しない場合はスキップ
-			}
 			return nil, fmt.Errorf("failed to get item from cache: %w", err)
 		}
 

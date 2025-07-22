@@ -12,26 +12,30 @@ type GameFinishRequestDTO struct {
 	Score int `json:"score"`
 }
 
+type GameFinishResponseDTO struct {
+	Coin int `json:"coin"`
+}
+
 type GameService interface {
-	Finish(c *minigin.Context, score int) (int, error)
+	FinalizeGame(c *minigin.Context, score int) (*GameFinishResponseDTO, error)
 }
 
 type gameService struct {
-	userRepo    repository.UserRepository
-	rankingRepo repository.RankingRepository
+	userRepo    repository.UserRepo
+	rankingRepo repository.RankingRepo
 }
 
-func NewGameService(userRepo repository.UserRepository, rankingRepo repository.RankingRepository) GameService {
+func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) GameService {
 	return &gameService{
 		userRepo:    userRepo,
 		rankingRepo: rankingRepo,
 	}
 }
 
-func (s *gameService) Finish(c *minigin.Context, score int) (int, error) {
+func (s *gameService) FinalizeGame(c *minigin.Context, score int) (*GameFinishResponseDTO, error) {
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
-		return 0, fmt.Errorf("failed to get user")
+		return nil, fmt.Errorf("failed to get user")
 	}
 
 	if score > user.HighScore {
@@ -40,12 +44,14 @@ func (s *gameService) Finish(c *minigin.Context, score int) (int, error) {
 	user.Coin += 100
 
 	if err := s.userRepo.Save(user); err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	if err := s.rankingRepo.SaveToCache(user); err != nil {
-		return 0, err
+	if err := s.rankingRepo.Save(user); err != nil {
+		return nil, err
 	}
 
-	return user.Coin, nil
+	return &GameFinishResponseDTO{
+		Coin: user.Coin,
+	}, nil
 }
