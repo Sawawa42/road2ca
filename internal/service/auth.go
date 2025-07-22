@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"road2ca/internal/constants"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
 )
@@ -29,7 +28,7 @@ func (s *authService) SaveTokenToContext(token string, c *minigin.Context) error
 	}
 
 	ctx := c.Request.Context()
-	ctx = context.WithValue(ctx, constants.ContextKey, user)
+	ctx = context.WithValue(ctx, ContextKey, user)
 	c.Request = c.Request.Clone(ctx)
 
 	return nil

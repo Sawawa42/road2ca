@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
-	"road2ca/internal/constants"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
@@ -38,6 +37,7 @@ type gachaService struct {
 	itemRepo       repository.ItemRepo
 	collectionRepo repository.CollectionRepo
 	userRepo       repository.UserRepo
+	settingRepo    repository.SettingRepo
 	db             *sql.DB
 	totalWeight    int
 	randGen        *rand.Rand
@@ -47,6 +47,7 @@ func NewGachaService(
 	itemRepo repository.ItemRepo,
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
+	settingRepo repository.SettingRepo,
 	db *sql.DB,
 	gachaProps *GachaServiceProps,
 ) GachaService {
@@ -54,6 +55,7 @@ func NewGachaService(
 		itemRepo:       itemRepo,
 		collectionRepo: collectionRepo,
 		userRepo:       userRepo,
+		settingRepo:    settingRepo,
 		db:             db,
 		totalWeight:    gachaProps.TotalWeight,
 		randGen:        gachaProps.RandGen,
@@ -61,14 +63,21 @@ func NewGachaService(
 }
 
 func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error) {
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	setting, err := s.settingRepo.FindLatest()
+	if err != nil {
+		return nil, err
+	}
+
+	if times < 1 || times > setting.DrawGachaMaxTimes {
+		return nil, fmt.Errorf("times must be between 1 and %d", setting.DrawGachaMaxTimes)
+	}
+
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	// TODO: ガチャの消費コイン数は設定から取得する
-	const GachaCoinConsumption = 100
-	if user.Coin < GachaCoinConsumption*times {
+	if user.Coin < setting.GachaCoinConsumption*times {
 		return nil, fmt.Errorf("not enough coins")
 	}
 
@@ -130,7 +139,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	if err != nil {
 		return nil, fmt.Errorf("failed to save collections: %w", err)
 	}
-	user.Coin -= GachaCoinConsumption * times
+	user.Coin -= setting.GachaCoinConsumption * times
 	err = s.userRepo.SaveTx(tx, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save user: %w", err)

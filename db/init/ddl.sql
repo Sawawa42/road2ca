@@ -5,10 +5,15 @@ SET CHARSET utf8mb4;
 
 -- 設定情報を格納するテーブル
 CREATE TABLE IF NOT EXISTS `road2ca`.`settings` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(128) NOT NULL,
-  `value` INT NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`)
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(128) NOT NULL,
+    `gachaCoinConsumption` INT NOT NULL DEFAULT 0,
+    `drawGachaMaxTimes` INT NOT NULL DEFAULT 0,
+    `getRankingLimit` INT NOT NULL DEFAULT 0,
+    `rewardCoin` INT NOT NULL DEFAULT 0,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
 );
 
 -- ユーザー情報を格納するテーブル

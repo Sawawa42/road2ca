@@ -15,15 +15,19 @@ type Services struct {
 	Gacha      GachaService
 }
 
+type contextKeyType string
+
+const ContextKey contextKeyType = "contextKey"
+
 func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services {
 	return &Services{
 		User:       NewUserService(repo.User),
 		Auth:       NewAuthService(repo.User),
-		Setting:    NewSettingService(),
 		Item:       NewItemService(repo.Item),
 		Collection: NewCollectionService(repo.Collection, repo.Item),
-		Ranking:    NewRankingService(repo.User, repo.Ranking),
-		Game:       NewGameService(repo.User, repo.Ranking),
-		Gacha:      NewGachaService(repo.Item, repo.Collection, repo.User, repo.DB, gachaProps),
+		Ranking:    NewRankingService(repo.User, repo.Ranking, repo.Setting),
+		Game:       NewGameService(repo.User, repo.Ranking, repo.Setting),
+		Gacha:      NewGachaService(repo.Item, repo.Collection, repo.User, repo.Setting, repo.DB, gachaProps),
+		Setting:    NewSettingService(repo.Setting),
 	}
 }

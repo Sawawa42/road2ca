@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"road2ca/internal/constants"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
@@ -23,17 +22,19 @@ type GameService interface {
 type gameService struct {
 	userRepo    repository.UserRepo
 	rankingRepo repository.RankingRepo
+	settingRepo repository.SettingRepo
 }
 
-func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) GameService {
+func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, settingRepo repository.SettingRepo) GameService {
 	return &gameService{
 		userRepo:    userRepo,
 		rankingRepo: rankingRepo,
+		settingRepo: settingRepo,
 	}
 }
 
 func (s *gameService) FinalizeGame(c *minigin.Context, score int) (*GameFinishResponseDTO, error) {
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user")
 	}
@@ -41,7 +42,13 @@ func (s *gameService) FinalizeGame(c *minigin.Context, score int) (*GameFinishRe
 	if score > user.HighScore {
 		user.HighScore = score
 	}
-	user.Coin += 100
+
+	setting, err := s.settingRepo.FindLatest()
+	if err != nil {
+		return nil, err
+	}
+
+	user.Coin += setting.RewardCoin
 
 	if err := s.userRepo.Save(user); err != nil {
 		return nil, err

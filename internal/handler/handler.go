@@ -16,7 +16,7 @@ type Handler struct {
 func New(s *service.Services) *Handler {
 	return &Handler{
 		User:       NewUserHandler(s.User),
-		Setting:    NewSettingHandler(),
+		Setting:    NewSettingHandler(s.Setting),
 		Collection: NewCollectionHandler(s.Collection),
 		Ranking:    NewRankingHandler(s.Ranking),
 		Game:       NewGameHandler(s.User, s.Game),
