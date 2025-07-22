@@ -1,5 +1,5 @@
 all:
-	go run ./cmd/main.go
+	go run ./cmd/road2ca-api/main.go
 
 seed:
 	go run ./cmd/seed/main.go

@@ -6,9 +6,11 @@ import (
 	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"log"
 	"math/rand"
+	"os"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
@@ -46,8 +48,11 @@ func main() {
 
 // connectDB MySQLデータベースに接続する
 func initMySQL() *sql.DB {
-	// TODO: .envからDSNを取得するようにする(正直今回は簡単のためハードコーディングでもいい気がする)
-	dsn := "root:ca-tech-dojo@tcp(localhost:3306)/road2ca?parseTime=true"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+	dsn := os.Getenv("DSN")
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
