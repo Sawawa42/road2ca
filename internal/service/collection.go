@@ -8,7 +8,11 @@ import (
 	"road2ca/pkg/minigin"
 )
 
-type CollectionsResponse struct {
+type CollectionListResponseDTO struct {
+	Collections []*CollectionListItemDTO `json:"collections"`
+}
+
+type CollectionListItemDTO struct {
 	CollectionID int    `json:"collectionID"`
 	Name         string `json:"name"`
 	Rarity       int    `json:"rarity"`
@@ -16,7 +20,7 @@ type CollectionsResponse struct {
 }
 
 type CollectionService interface {
-	GetCollectionList(c *minigin.Context) ([]*CollectionsResponse, error)
+	GetCollectionList(c *minigin.Context) ([]*CollectionListItemDTO, error)
 }
 
 type collectionService struct {
@@ -31,7 +35,7 @@ func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo rep
 	}
 }
 
-func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*CollectionsResponse, error) {
+func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*CollectionListItemDTO, error) {
 	// ユーザー情報をコンテキストから取得
 	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
 	if !ok {
@@ -55,11 +59,11 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		collectionItemMap[collection.ItemID] = true
 	}
 
-	res := make([]*CollectionsResponse, 0, len(items))
+	res := make([]*CollectionListItemDTO, 0, len(items))
 	for _, item := range items {
 		// アイテム所持を判定
 		hasItem := collectionItemMap[item.ID]
-		res = append(res, &CollectionsResponse{
+		res = append(res, &CollectionListItemDTO{
 			CollectionID: item.ID,
 			Name:         item.Name,
 			Rarity:       item.Rarity,
