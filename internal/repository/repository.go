@@ -11,6 +11,7 @@ type Repositories struct {
 	Item       ItemRepo
 	Collection CollectionRepo
 	Ranking    RankingRepo
+	Setting    SettingRepo
 	DB         *sql.DB
 }
 
@@ -20,6 +21,7 @@ func New(db *sql.DB, rdb *redis.Client) *Repositories {
 		Item:       NewItemRepo(db, rdb),
 		Collection: NewCollectionRepo(db),
 		Ranking:    NewRankingRepo(rdb),
+		Setting:    NewSettingRepo(db, rdb),
 		DB:         db,
 	}
 }

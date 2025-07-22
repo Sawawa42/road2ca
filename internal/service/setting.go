@@ -1,35 +1,40 @@
 package service
 
-type SettingDTO struct {
+import (
+	"road2ca/internal/repository"
+)
+
+type GetSettingResponseDTO struct {
 	GachaCoinConsumption int `json:"gachaCoinConsumption"`
-	RankingFetchCount    int `json:"rankingFetchCount"`
+	DrawGachaMaxTimes    int `json:"drawGachaMaxTimes"`
+	GetRankingLimit      int `json:"getRankingLimit"`
+	RewardCoin           int `json:"rewardCoin"`
 }
 
 type SettingService interface {
-	Get() (*SettingDTO, error)
+	GetSettings() (*GetSettingResponseDTO, error)
 }
 
 type settingService struct {
-	// ここに必要なリポジトリを追加
+	settingRepo repository.SettingRepo
 }
 
-func NewSettingService() SettingService {
+func NewSettingService(settingRepo repository.SettingRepo) SettingService {
 	return &settingService{
-		// ここで必要なリポジトリを初期化
+		settingRepo: settingRepo,
 	}
 }
 
-const (
-	// ガチャ1回あたりのコイン消費量
-	GachaCoinConsumption = 100
-	// ランキングを取得する際の取得件数
-	RankingFetchCount = 10
-)
+func (s *settingService) GetSettings() (*GetSettingResponseDTO, error) {
+	setting, err := s.settingRepo.FindLatest()
+	if err != nil {
+		return nil, err
+	}
 
-func (s *settingService) Get() (*SettingDTO, error) {
-	// ここでは固定値を返すが、将来的にはDBや設定ファイルから取得するよう変更可能にする
-	return &SettingDTO{
-		GachaCoinConsumption: GachaCoinConsumption,
-		RankingFetchCount:    RankingFetchCount,
+	return &GetSettingResponseDTO{
+		GachaCoinConsumption: setting.GachaCoinConsumption,
+		DrawGachaMaxTimes:    setting.DrawGachaMaxTimes,
+		GetRankingLimit:      setting.GetRankingLimit,
+		RewardCoin:           setting.RewardCoin,
 	}, nil
 }

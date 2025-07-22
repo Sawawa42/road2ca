@@ -15,15 +15,15 @@ type settingHandler struct {
 	settingService service.SettingService
 }
 
-func NewSettingHandler() SettingHandler {
+func NewSettingHandler(settingService service.SettingService) SettingHandler {
 	return &settingHandler{
-		settingService: service.NewSettingService(),
+		settingService: settingService,
 	}
 }
 
 // HandleGetSetting 設定情報を取得する
 func (h *settingHandler) HandleGetSetting(c *minigin.Context) {
-	res, err := h.settingService.Get()
+	res, err := h.settingService.GetSettings()
 	if err != nil {
 		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{

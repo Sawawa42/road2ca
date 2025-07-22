@@ -19,11 +19,11 @@ func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services
 	return &Services{
 		User:       NewUserService(repo.User),
 		Auth:       NewAuthService(repo.User),
-		Setting:    NewSettingService(),
 		Item:       NewItemService(repo.Item),
 		Collection: NewCollectionService(repo.Collection, repo.Item),
 		Ranking:    NewRankingService(repo.User, repo.Ranking),
 		Game:       NewGameService(repo.User, repo.Ranking),
 		Gacha:      NewGachaService(repo.Item, repo.Collection, repo.User, repo.DB, gachaProps),
+		Setting:    NewSettingService(repo.Setting),
 	}
 }
