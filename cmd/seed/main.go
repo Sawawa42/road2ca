@@ -53,7 +53,7 @@ func main() {
 	}
 }
 
-// connectDB MySQLデータベースに接続する
+// initMySQL MySQLデータベースに接続する
 func initMySQL() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {

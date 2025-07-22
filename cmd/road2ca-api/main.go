@@ -46,7 +46,7 @@ func main() {
 	server.Serve(addr, h, m)
 }
 
-// connectDB MySQLデータベースに接続する
+// initMySQL MySQLデータベースに接続する
 func initMySQL() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {
