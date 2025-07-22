@@ -22,12 +22,14 @@ type GameService interface {
 type gameService struct {
 	userRepo    repository.UserRepo
 	rankingRepo repository.RankingRepo
+	settingRepo repository.SettingRepo
 }
 
-func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) GameService {
+func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, settingRepo repository.SettingRepo) GameService {
 	return &gameService{
 		userRepo:    userRepo,
 		rankingRepo: rankingRepo,
+		settingRepo: settingRepo,
 	}
 }
 
@@ -40,7 +42,13 @@ func (s *gameService) FinalizeGame(c *minigin.Context, score int) (*GameFinishRe
 	if score > user.HighScore {
 		user.HighScore = score
 	}
-	user.Coin += 100
+
+	setting, err := s.settingRepo.FindLatest()
+	if err != nil {
+		return nil, err
+	}
+
+	user.Coin += setting.RewardCoin
 
 	if err := s.userRepo.Save(user); err != nil {
 		return nil, err
