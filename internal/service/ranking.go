@@ -17,22 +17,30 @@ type RankingItemDTO struct {
 }
 
 type RankingService interface {
-	GetRankingInRange(start, end int) ([]*RankingItemDTO, error)
+	GetRanking(start int) ([]*RankingItemDTO, error)
 }
 
 type rankingService struct {
 	rankingRepo repository.RankingRepo
 	userRepo    repository.UserRepo
+	settingRepo repository.SettingRepo
 }
 
-func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo) RankingService {
+func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, settingRepo repository.SettingRepo) RankingService {
 	return &rankingService{
 		rankingRepo: rankingRepo,
 		userRepo:    userRepo,
+		settingRepo: settingRepo,
 	}
 }
 
-func (s *rankingService) GetRankingInRange(start, end int) ([]*RankingItemDTO, error) {
+func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
+	setting, err := s.settingRepo.FindLatest()
+	if err != nil {
+		return nil, err
+	}
+
+	end := setting.GetRankingLimit
 	if start < 0 || end < 0 || start > end {
 		return nil, fmt.Errorf("invalid range: start=%d, end=%d", start, end)
 	}

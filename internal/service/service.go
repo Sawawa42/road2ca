@@ -24,7 +24,7 @@ func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services
 		Auth:       NewAuthService(repo.User),
 		Item:       NewItemService(repo.Item),
 		Collection: NewCollectionService(repo.Collection, repo.Item),
-		Ranking:    NewRankingService(repo.User, repo.Ranking),
+		Ranking:    NewRankingService(repo.User, repo.Ranking, repo.Setting),
 		Game:       NewGameService(repo.User, repo.Ranking),
 		Gacha:      NewGachaService(repo.Item, repo.Collection, repo.User, repo.DB, gachaProps),
 		Setting:    NewSettingService(repo.Setting),
