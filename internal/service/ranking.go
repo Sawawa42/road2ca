@@ -40,8 +40,8 @@ func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
 		return nil, err
 	}
 
-	end := setting.GetRankingLimit
-	if start < 0 || end < 0 || start > end {
+	end := start + setting.GetRankingLimit
+	if start < 0 || setting.GetRankingLimit < 0 || start >= end {
 		return nil, fmt.Errorf("invalid range: start=%d, end=%d", start, end)
 	}
 
