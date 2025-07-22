@@ -86,9 +86,15 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 		return nil, nil, err
 	}
 
+	// itemをキャッシュ
+	if err := s.Item.SetItemToCache(); err != nil {
+		return nil, nil, err
+	}
+
 	return h, m, nil
 }
 
+// TODO: mainとは別cmdに切り出す
 func seed(r *repository.Repositories) error {
 	users := []*entity.User{
 		{ID: 2, Name: "Alice", HighScore: 100, Token: "alice"},
