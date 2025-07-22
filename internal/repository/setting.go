@@ -61,7 +61,7 @@ func (r *settingRepo) FindLatest() (*entity.Setting, error) {
 
 func (r *settingRepo) findLatestFromDB() (*entity.Setting, error) {
 	var setting entity.Setting
-	query := "SELECT id, name, gacha_coin_consumption, draw_gacha_max_times, get_ranking_limit, reward_coin FROM settings ORDER BY id DESC LIMIT 1"
+	query := "SELECT id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin FROM settings ORDER BY id DESC LIMIT 1"
 	row := r.db.QueryRow(query)
 
 	err := row.Scan(&setting.ID, &setting.Name, &setting.GachaCoinConsumption, &setting.DrawGachaMaxTimes, &setting.GetRankingLimit, &setting.RewardCoin)

@@ -90,17 +90,31 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 	h := handler.New(s)
 	m := middleware.New(s)
 
+	// マスターデータをキャッシュに設定
+	if err := setMasterDataToCache(s); err != nil {
+		return nil, nil, err
+	}
+
 	// シードデータの追加
 	if err := seed(r); err != nil {
 		return nil, nil, err
 	}
 
-	// itemをキャッシュ
-	if err := s.Item.SetItemToCache(); err != nil {
-		return nil, nil, err
+	return h, m, nil
+}
+
+func setMasterDataToCache(s *service.Services) error {
+	// 設定をキャッシュ
+	if err := s.Setting.SetSettingToCache(); err != nil {
+		return err
 	}
 
-	return h, m, nil
+	// itemをキャッシュ
+	if err := s.Item.SetItemToCache(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func loadGachaServiceProps(itemRepo repository.ItemRepo) (*service.GachaServiceProps, error) {

@@ -12,6 +12,7 @@ type GetSettingResponseDTO struct {
 }
 
 type SettingService interface {
+	SetSettingToCache() error
 	GetSettings() (*GetSettingResponseDTO, error)
 }
 
@@ -23,6 +24,19 @@ func NewSettingService(settingRepo repository.SettingRepo) SettingService {
 	return &settingService{
 		settingRepo: settingRepo,
 	}
+}
+
+func (s *settingService) SetSettingToCache() error {
+	setting, err := s.settingRepo.FindLatest()
+	if err != nil {
+		return err
+	}
+
+	if err := s.settingRepo.Save(setting); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *settingService) GetSettings() (*GetSettingResponseDTO, error) {
