@@ -15,6 +15,9 @@ type Services struct {
 	Gacha      GachaService
 }
 
+type contextKeyType string
+const ContextKey contextKeyType = "contextKey"
+
 func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services {
 	return &Services{
 		User:       NewUserService(repo.User),

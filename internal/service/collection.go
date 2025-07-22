@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"road2ca/internal/constants"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
@@ -37,7 +36,7 @@ func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo rep
 
 func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*CollectionListItemDTO, error) {
 	// ユーザー情報をコンテキストから取得
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user from context")
 	}

@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"road2ca/internal/constants"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
@@ -33,7 +32,7 @@ func NewGameService(userRepo repository.UserRepo, rankingRepo repository.Ranking
 }
 
 func (s *gameService) FinalizeGame(c *minigin.Context, score int) (*GameFinishResponseDTO, error) {
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user")
 	}

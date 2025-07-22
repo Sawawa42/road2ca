@@ -3,7 +3,6 @@ package service
 import (
 	"crypto/md5"
 	"fmt"
-	"road2ca/internal/constants"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
@@ -61,7 +60,7 @@ func (s *userService) CreateUser(name string) (*CreateUserResponseDTO, error) {
 }
 
 func (s *userService) GetUser(c *minigin.Context) (*GetUserResponseDTO, error) {
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user")
 	}
@@ -75,7 +74,7 @@ func (s *userService) GetUser(c *minigin.Context) (*GetUserResponseDTO, error) {
 }
 
 func (s *userService) UpdateUser(c *minigin.Context, name string) error {
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return fmt.Errorf("failed to get user")
 	}

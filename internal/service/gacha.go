@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
-	"road2ca/internal/constants"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
@@ -61,7 +60,7 @@ func NewGachaService(
 }
 
 func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error) {
-	user, ok := c.Request.Context().Value(constants.ContextKey).(*entity.User)
+	user, ok := c.Request.Context().Value(ContextKey).(*entity.User)
 	if !ok {
 		return nil, fmt.Errorf("failed to get user from context")
 	}
