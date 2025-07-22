@@ -1,13 +1,13 @@
 package service
 
 import (
-	"road2ca/internal/constants"
-	"road2ca/internal/repository"
-	"road2ca/pkg/minigin"
-	"road2ca/internal/entity"
+	"database/sql"
 	"fmt"
 	"math/rand"
-	"database/sql"
+	"road2ca/internal/constants"
+	"road2ca/internal/entity"
+	"road2ca/internal/repository"
+	"road2ca/pkg/minigin"
 )
 
 type DrawGachaRequestDTO struct {
@@ -21,8 +21,8 @@ type DrawGachaResponseDTO struct {
 type GachaItemDTO struct {
 	CollectionID int    `json:"collectionID"`
 	Name         string `json:"name"`
-	Rarity      int    `json:"rarity"`
-	IsNew       bool   `json:"isNew"`
+	Rarity       int    `json:"rarity"`
+	IsNew        bool   `json:"isNew"`
 }
 
 type GachaServiceProps struct {
@@ -37,26 +37,26 @@ type GachaService interface {
 type gachaService struct {
 	itemRepo       repository.ItemRepo
 	collectionRepo repository.CollectionRepo
-	userRepo repository.UserRepo
-	db 	 *sql.DB
-	totalWeight int
-	randGen *rand.Rand
+	userRepo       repository.UserRepo
+	db             *sql.DB
+	totalWeight    int
+	randGen        *rand.Rand
 }
 
 func NewGachaService(
 	itemRepo repository.ItemRepo,
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
-	db       *sql.DB,
+	db *sql.DB,
 	gachaProps *GachaServiceProps,
 ) GachaService {
 	return &gachaService{
 		itemRepo:       itemRepo,
 		collectionRepo: collectionRepo,
-		userRepo:      userRepo,
-		db:            db,
-		totalWeight:   gachaProps.TotalWeight,
-		randGen:      gachaProps.RandGen,
+		userRepo:       userRepo,
+		db:             db,
+		totalWeight:    gachaProps.TotalWeight,
+		randGen:        gachaProps.RandGen,
 	}
 }
 
@@ -68,7 +68,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 
 	// TODO: ガチャの消費コイン数は設定から取得する
 	const GachaCoinConsumption = 100
-	if user.Coin < GachaCoinConsumption * times {
+	if user.Coin < GachaCoinConsumption*times {
 		return nil, fmt.Errorf("not enough coins")
 	}
 
@@ -102,7 +102,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	}
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
-	var results []GachaItemDTO // 結果を格納するスライス
+	var results []GachaItemDTO                    // 結果を格納するスライス
 	for _, item := range pickedItems {
 		isNew := !hasItemsMap[item.ID]
 		results = append(results, GachaItemDTO{

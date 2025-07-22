@@ -12,12 +12,12 @@ import (
 	"road2ca/internal/service"
 
 	"context"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
 	"log"
 	"math/rand"
 	"time"
-	"fmt"
 )
 
 var (
