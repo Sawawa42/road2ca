@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"road2ca/internal/entity"
-	"github.com/redis/go-redis/v9"
 	"database/sql"
 	"encoding/json"
+	"github.com/redis/go-redis/v9"
+	"road2ca/internal/entity"
 )
 
 type SettingRepo interface {

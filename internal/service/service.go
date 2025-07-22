@@ -16,6 +16,7 @@ type Services struct {
 }
 
 type contextKeyType string
+
 const ContextKey contextKeyType = "contextKey"
 
 func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services {

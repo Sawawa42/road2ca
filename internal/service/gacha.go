@@ -37,7 +37,7 @@ type gachaService struct {
 	itemRepo       repository.ItemRepo
 	collectionRepo repository.CollectionRepo
 	userRepo       repository.UserRepo
-	settingRepo   repository.SettingRepo
+	settingRepo    repository.SettingRepo
 	db             *sql.DB
 	totalWeight    int
 	randGen        *rand.Rand
@@ -77,7 +77,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	if user.Coin < setting.GachaCoinConsumption * times {
+	if user.Coin < setting.GachaCoinConsumption*times {
 		return nil, fmt.Errorf("not enough coins")
 	}
 
