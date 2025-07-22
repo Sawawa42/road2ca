@@ -74,9 +74,6 @@ func initRedis() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})
-	if rdb == nil {
-		log.Fatal("Failed to create Redis client")
-	}
 	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %+v", err)
 	}
