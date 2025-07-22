@@ -1,22 +1,21 @@
 package main
 
 import (
-	"flag"
-
+	"context"
 	"database/sql"
-	"road2ca/internal/entity"
+	"flag"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
+	"log"
+	"math/rand"
+	"os"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
-
-	"context"
-	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/redis/go-redis/v9"
-	"log"
-	"math/rand"
 	"time"
 )
 
@@ -37,6 +36,7 @@ func main() {
 
 	// Redis接続の初期化
 	rdb := initRedis()
+	defer rdb.Close()
 
 	h, m, err := initServer(db, rdb)
 	if err != nil {
@@ -46,10 +46,13 @@ func main() {
 	server.Serve(addr, h, m)
 }
 
-// connectDB MySQLデータベースに接続する
+// initMySQL MySQLデータベースに接続する
 func initMySQL() *sql.DB {
-	// TODO: .envからDSNを取得するようにする(正直今回は簡単のためハードコーディングでもいい気がする)
-	dsn := "root:ca-tech-dojo@tcp(localhost:3306)/road2ca?parseTime=true"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+	dsn := os.Getenv("DSN")
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -69,9 +72,6 @@ func initRedis() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})
-	if rdb == nil {
-		log.Fatal("Failed to create Redis client")
-	}
 	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %+v", err)
 	}
@@ -92,11 +92,6 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 
 	// マスターデータをキャッシュに設定
 	if err := setMasterDataToCache(s); err != nil {
-		return nil, nil, err
-	}
-
-	// シードデータの追加
-	if err := seed(r); err != nil {
 		return nil, nil, err
 	}
 
@@ -142,31 +137,4 @@ func loadGachaServiceProps(itemRepo repository.ItemRepo) (*service.GachaServiceP
 		TotalWeight: totalWeight,
 		RandGen:     r,
 	}, nil
-}
-
-// TODO: mainとは別cmdに切り出す
-func seed(r *repository.Repositories) error {
-	users := []*entity.User{
-		{ID: 2, Name: "Alice", HighScore: 100, Token: "alice"},
-		{ID: 3, Name: "Bob", HighScore: 200, Token: "bob"},
-		{ID: 4, Name: "Charlie", HighScore: 150, Token: "charlie"},
-		{ID: 5, Name: "Dave", HighScore: 300, Token: "dave"},
-		{ID: 6, Name: "Eve", HighScore: 250, Token: "eve"},
-		{ID: 7, Name: "Frank", HighScore: 400, Token: "frank"},
-		{ID: 8, Name: "Grace", HighScore: 350, Token: "grace"},
-		{ID: 9, Name: "Heidi", HighScore: 450, Token: "heidi"},
-		{ID: 10, Name: "Ivan", HighScore: 500, Token: "ivan"},
-		{ID: 11, Name: "Judy", HighScore: 1000, Token: "judy"},
-	}
-
-	for _, user := range users {
-		if err := r.User.Save(user); err != nil {
-			return err
-		}
-		if err := r.Ranking.Save(user); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
