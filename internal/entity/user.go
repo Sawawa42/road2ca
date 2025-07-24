@@ -1,7 +1,9 @@
 package entity
 
+import "github.com/gofrs/uuid"
+
 type User struct {
-	ID        int
+	ID        uuid.UUID
 	Name      string
 	HighScore int
 	Coin      int

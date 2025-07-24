@@ -1,7 +1,9 @@
 package entity
 
+import "github.com/gofrs/uuid"
+
 type Ranking struct {
-	UserID int
+	UserID uuid.UUID
 	Score  int
 	Rank   int
 }
