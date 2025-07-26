@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"road2ca/internal/entity"
 	"strings"
+	"github.com/google/uuid"
 )
 
 type CollectionRepo interface {
 	Save(tx *sql.Tx, collections []*entity.Collection) error
-	FindByUserID(userID int) ([]*entity.Collection, error)
+	FindByUserID(userID uuid.UUID) ([]*entity.Collection, error)
 }
 
 type collectionRepo struct {
@@ -40,7 +41,7 @@ func (r *collectionRepo) Save(tx *sql.Tx, collections []*entity.Collection) erro
 }
 
 // FindByUserID ユーザーIDに紐づくコレクションを取得する
-func (r *collectionRepo) FindByUserID(userID int) ([]*entity.Collection, error) {
+func (r *collectionRepo) FindByUserID(userID uuid.UUID) ([]*entity.Collection, error) {
 	query := `SELECT id, userId, itemId FROM collections WHERE userId = ?`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
