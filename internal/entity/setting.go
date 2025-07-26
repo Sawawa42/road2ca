@@ -1,7 +1,9 @@
 package entity
 
+import "github.com/google/uuid"
+
 type Setting struct {
-	ID                   int
+	ID                   uuid.UUID
 	Name                 string
 	GachaCoinConsumption int
 	DrawGachaMaxTimes    int

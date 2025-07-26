@@ -1,6 +1,6 @@
 package entity
 
-import "github.com/gofrs/uuid"
+import "github.com/google/uuid"
 
 type Collection struct {
 	ID     uuid.UUID
