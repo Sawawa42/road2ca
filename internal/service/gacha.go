@@ -8,6 +8,7 @@ import (
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type DrawGachaRequestDTO struct {
@@ -35,7 +36,8 @@ type GachaService interface {
 }
 
 type gachaService struct {
-	itemRepo       repository.ItemRepo
+	mysqlItemRepo  repository.MySQLItemRepo
+	redisItemRepo  repository.RedisItemRepo
 	collectionRepo repository.CollectionRepo
 	userRepo       repository.UserRepo
 	settingRepo    repository.SettingRepo
@@ -45,7 +47,8 @@ type gachaService struct {
 }
 
 func NewGachaService(
-	itemRepo repository.ItemRepo,
+	mysqlItemRepo repository.MySQLItemRepo,
+	redisItemRepo repository.RedisItemRepo,
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
 	settingRepo repository.SettingRepo,
@@ -53,7 +56,8 @@ func NewGachaService(
 	gachaProps *GachaServiceProps,
 ) GachaService {
 	return &gachaService{
-		itemRepo:       itemRepo,
+		mysqlItemRepo:  mysqlItemRepo,
+		redisItemRepo:  redisItemRepo,
 		collectionRepo: collectionRepo,
 		userRepo:       userRepo,
 		settingRepo:    settingRepo,
@@ -82,10 +86,18 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("not enough coins")
 	}
 
-	// アイテムを取得
-	items, err := s.itemRepo.Find()
+	// アイテムをキャッシュから取得
+	items, err := s.redisItemRepo.Find()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get items: %w", err)
+		// キャッシュにアイテムがない場合はMySQLから取得
+		if err == redis.Nil {
+			items, err = s.mysqlItemRepo.Find()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	// 重み付き抽選でアイテムを選ぶ

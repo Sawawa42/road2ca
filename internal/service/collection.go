@@ -6,6 +6,7 @@ import (
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type CollectionListResponseDTO struct {
@@ -25,13 +26,15 @@ type CollectionService interface {
 
 type collectionService struct {
 	collectionRepo repository.CollectionRepo
-	itemRepo       repository.ItemRepo
+	mysqlItemRepo repository.MySQLItemRepo
+	redisItemRepo repository.RedisItemRepo
 }
 
-func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo repository.ItemRepo) CollectionService {
+func NewCollectionService(collectionRepo repository.CollectionRepo, mysqlItemRepo repository.MySQLItemRepo, redisItemRepo repository.RedisItemRepo) CollectionService {
 	return &collectionService{
 		collectionRepo: collectionRepo,
-		itemRepo:       itemRepo,
+		mysqlItemRepo:  mysqlItemRepo,
+		redisItemRepo:  redisItemRepo,
 	}
 }
 
@@ -42,11 +45,20 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	// アイテムを取得
-	items, err := s.itemRepo.Find()
+	// アイテムをキャッシュから取得
+	items, err := s.redisItemRepo.Find()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get items: %w", err)
+		// キャッシュにアイテムがない場合はMySQLから取得
+		if err == redis.Nil {
+			items, err = s.mysqlItemRepo.Find()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
+
 	// ユーザーのコレクションを取得
 	collections, err := s.collectionRepo.FindByUserID(user.ID)
 	if err != nil {

@@ -7,7 +7,9 @@ import (
 
 type Repositories struct {
 	User       UserRepo
-	Item       ItemRepo
+	// Item       ItemRepo
+	MySQLItem  MySQLItemRepo
+	RedisItem  RedisItemRepo
 	Collection CollectionRepo
 	Ranking    RankingRepo
 	Setting    SettingRepo
@@ -17,7 +19,9 @@ type Repositories struct {
 func New(db *sql.DB, rdb *redis.Client) *Repositories {
 	return &Repositories{
 		User:       NewUserRepo(db),
-		Item:       NewItemRepo(db, rdb),
+		// Item:       NewItemRepo(db, rdb),
+		MySQLItem:  NewMySQLItemRepo(db),
+		RedisItem:  NewRedisItemRepo(rdb),
 		Collection: NewCollectionRepo(db),
 		Ranking:    NewRankingRepo(rdb),
 		Setting:    NewSettingRepo(db, rdb),

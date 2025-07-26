@@ -81,7 +81,7 @@ func initRedis() *redis.Client {
 func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
 	r := repository.New(db, rdb)
 
-	gachaProps, err := loadGachaServiceProps(r.Item)
+	gachaProps, err := loadGachaServiceProps(r.MySQLItem, r.RedisItem)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -101,31 +101,28 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 func setMasterDataToCache(s *service.Services) error {
 	// 設定をキャッシュ
 	if err := s.Setting.SetSettingToCache(); err != nil {
+		log.Printf("Failed to set settings to cache: %v", err)
 		return err
 	}
 
 	// itemをキャッシュ
 	if err := s.Item.SetItemToCache(); err != nil {
+		log.Printf("Failed to set items to cache: %v", err)
 		return err
 	}
 
 	return nil
 }
 
-func loadGachaServiceProps(itemRepo repository.ItemRepo) (*service.GachaServiceProps, error) {
-	items, err := itemRepo.Find()
+func loadGachaServiceProps(mySqlItemRepo repository.MySQLItemRepo, redisItemRepo repository.RedisItemRepo) (*service.GachaServiceProps, error) {
+	items, err := repository.FindItems(mySqlItemRepo, redisItemRepo)
 	if err != nil {
 		return nil, err
-	}
-	if len(items) == 0 {
-		return nil, fmt.Errorf("no items found in cache")
 	}
 
 	totalWeight := 0
 	for _, item := range items {
-		if item.Weight == 0 {
-			continue // 重みが0のアイテムは無視する
-		} else if item.Weight < 0 {
+		if item.Weight < 1 {
 			return nil, fmt.Errorf("item has invalid weight: %s", item.Name)
 		}
 		totalWeight += item.Weight

@@ -31,7 +31,11 @@ func (r *collectionRepo) Save(tx *sql.Tx, collections []*entity.Collection) erro
 	var args []interface{}
 	for _, collection := range collections {
 		placeholders = append(placeholders, "(?, ?, ?)")
-		args = append(args, collection.ID, collection.UserID, collection.ItemID)
+		uuid, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
+		args = append(args, uuid, collection.UserID, collection.ItemID)
 	}
 	query += strings.Join(placeholders, ", ")
 	query += " ON DUPLICATE KEY UPDATE itemId = VALUES(itemId)"
