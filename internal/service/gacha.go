@@ -7,6 +7,7 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+	"github.com/google/uuid"
 )
 
 type DrawGachaRequestDTO struct {
@@ -18,10 +19,10 @@ type DrawGachaResponseDTO struct {
 }
 
 type GachaItemDTO struct {
-	CollectionID int    `json:"collectionID"`
-	Name         string `json:"name"`
-	Rarity       int    `json:"rarity"`
-	IsNew        bool   `json:"isNew"`
+	CollectionID uuid.UUID `json:"collectionID"`
+	Name         string    `json:"name"`
+	Rarity       int       `json:"rarity"`
+	IsNew        bool      `json:"isNew"`
 }
 
 type GachaServiceProps struct {
@@ -105,7 +106,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var hasItemsMap = make(map[int]bool)
+	var hasItemsMap = make(map[uuid.UUID]bool)
 	for _, collection := range collections {
 		hasItemsMap[collection.ItemID] = true
 	}

@@ -5,6 +5,7 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+	"github.com/google/uuid"
 )
 
 type CollectionListResponseDTO struct {
@@ -12,10 +13,10 @@ type CollectionListResponseDTO struct {
 }
 
 type CollectionListItemDTO struct {
-	CollectionID int    `json:"collectionID"`
-	Name         string `json:"name"`
-	Rarity       int    `json:"rarity"`
-	HasItem      bool   `json:"hasItem"`
+	CollectionID uuid.UUID `json:"collectionID"`
+	Name         string    `json:"name"`
+	Rarity       int       `json:"rarity"`
+	HasItem      bool      `json:"hasItem"`
 }
 
 type CollectionService interface {
@@ -53,7 +54,7 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 	}
 
 	// 特定のアイテムIDがユーザのコレクションに含まれているかをチェックするためのマップを作成
-	collectionItemMap := make(map[int]bool)
+	collectionItemMap := make(map[uuid.UUID]bool)
 	for _, collection := range collections {
 		collectionItemMap[collection.ItemID] = true
 	}

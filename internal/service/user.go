@@ -6,13 +6,14 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+	"github.com/google/uuid"
 )
 
 type GetUserResponseDTO struct {
-	ID        int    `json:"id"`
-	Name      string `json:"name"`
-	HighScore int    `json:"highScore"`
-	Coin      int    `json:"coin"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	HighScore int       `json:"highScore"`
+	Coin      int       `json:"coin"`
 }
 
 type CreateUserResponseDTO struct {

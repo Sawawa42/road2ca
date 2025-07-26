@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"road2ca/internal/repository"
+	"github.com/google/uuid"
 )
 
 type GetRankingListResponseDTO struct {
@@ -10,10 +11,10 @@ type GetRankingListResponseDTO struct {
 }
 
 type RankingItemDTO struct {
-	UserID   int    `json:"userId"`
-	UserName string `json:"userName"`
-	Rank     int    `json:"rank"`
-	Score    int    `json:"score"`
+	UserID   uuid.UUID `json:"userId"`
+	UserName string    `json:"userName"`
+	Rank     int       `json:"rank"`
+	Score    int       `json:"score"`
 }
 
 type RankingService interface {
