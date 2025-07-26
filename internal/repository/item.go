@@ -36,7 +36,7 @@ func (r *itemRepo) Save(items []*entity.Item) error {
 		if err != nil {
 			continue
 		}
-		key := fmt.Sprintf("item:%d", item.ID)
+		key := fmt.Sprintf("item:%s", item.ID)
 		pipe.Set(ctx, key, json, 0)
 	}
 

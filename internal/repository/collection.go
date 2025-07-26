@@ -26,12 +26,12 @@ func (r *collectionRepo) Save(tx *sql.Tx, collections []*entity.Collection) erro
 		return nil
 	}
 
-	query := "INSERT INTO collections (userId, itemId) VALUES "
+	query := "INSERT INTO collections (id, userId, itemId) VALUES "
 	var placeholders []string
 	var args []interface{}
 	for _, collection := range collections {
-		placeholders = append(placeholders, "(?, ?)")
-		args = append(args, collection.UserID, collection.ItemID)
+		placeholders = append(placeholders, "(?, ?, ?)")
+		args = append(args, collection.ID, collection.UserID, collection.ItemID)
 	}
 	query += strings.Join(placeholders, ", ")
 	query += " ON DUPLICATE KEY UPDATE itemId = VALUES(itemId)"
