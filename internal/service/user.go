@@ -6,14 +6,13 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
-	"github.com/google/uuid"
 )
 
 type GetUserResponseDTO struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	HighScore int       `json:"highScore"`
-	Coin      int       `json:"coin"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	HighScore int    `json:"highScore"`
+	Coin      int    `json:"coin"`
 }
 
 type CreateUserResponseDTO struct {
@@ -67,7 +66,7 @@ func (s *userService) GetUser(c *minigin.Context) (*GetUserResponseDTO, error) {
 	}
 
 	return &GetUserResponseDTO{
-		ID:        user.ID,
+		ID:        user.ID.String(),
 		Name:      user.Name,
 		HighScore: user.HighScore,
 		Coin:      user.Coin,

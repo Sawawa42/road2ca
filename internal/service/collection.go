@@ -14,10 +14,10 @@ type CollectionListResponseDTO struct {
 }
 
 type CollectionListItemDTO struct {
-	CollectionID uuid.UUID `json:"collectionID"`
-	Name         string    `json:"name"`
-	Rarity       int       `json:"rarity"`
-	HasItem      bool      `json:"hasItem"`
+	CollectionID string `json:"collectionID"`
+	Name         string `json:"name"`
+	Rarity       int    `json:"rarity"`
+	HasItem      bool   `json:"hasItem"`
 }
 
 type CollectionService interface {
@@ -76,7 +76,7 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		// アイテム所持を判定
 		hasItem := collectionItemMap[item.ID]
 		res = append(res, &CollectionListItemDTO{
-			CollectionID: item.ID,
+			CollectionID: item.ID.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			HasItem:      hasItem,

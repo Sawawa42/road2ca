@@ -20,10 +20,10 @@ type DrawGachaResponseDTO struct {
 }
 
 type GachaItemDTO struct {
-	CollectionID uuid.UUID `json:"collectionID"`
-	Name         string    `json:"name"`
-	Rarity       int       `json:"rarity"`
-	IsNew        bool      `json:"isNew"`
+	CollectionID string `json:"collectionID"`
+	Name         string `json:"name"`
+	Rarity       int    `json:"rarity"`
+	IsNew        bool   `json:"isNew"`
 }
 
 type GachaServiceProps struct {
@@ -128,7 +128,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	for _, item := range pickedItems {
 		isNew := !hasItemsMap[item.ID]
 		results = append(results, GachaItemDTO{
-			CollectionID: item.ID,
+			CollectionID: item.ID.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			IsNew:        isNew,

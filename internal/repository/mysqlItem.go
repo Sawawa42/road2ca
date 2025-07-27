@@ -2,8 +2,8 @@ package repository
 
 import (
 	"database/sql"
-	"strings"
 	"road2ca/internal/entity"
+	"strings"
 	"github.com/google/uuid"
 )
 
@@ -23,7 +23,7 @@ func NewMySQLItemRepo(db *sql.DB) MySQLItemRepo {
 }
 
 func (r *mysqlItemRepo) Save(items []*entity.Item) error {
-	query := "INSERT INTO items (id, name, rarity weight) VALUES "
+	query := "INSERT INTO items (id, name, rarity, weight) VALUES "
 	var placeholders []string
 	var args []interface{}
 	for _, item := range items {

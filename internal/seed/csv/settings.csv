@@ -1,0 +1,2 @@
+name,gachaCoinConsumption,drawGachaMaxTimes,getRankingLimit,rewardCoin
+default,100,10,10,1000

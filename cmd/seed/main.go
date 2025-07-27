@@ -8,35 +8,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"log"
 	"os"
-	"road2ca/internal/entity"
 	"road2ca/internal/repository"
+	"road2ca/internal/seed"
 )
-
-func seed(r *repository.Repositories) error {
-	users := []*entity.User{
-		{Name: "Alice", HighScore: 100, Token: "alice"},
-		{Name: "Bob", HighScore: 200, Token: "bob"},
-		{Name: "Charlie", HighScore: 150, Token: "charlie"},
-		{Name: "Dave", HighScore: 300, Token: "dave"},
-		{Name: "Eve", HighScore: 250, Token: "eve"},
-		{Name: "Frank", HighScore: 400, Token: "frank"},
-		{Name: "Grace", HighScore: 350, Token: "grace"},
-		{Name: "Heidi", HighScore: 450, Token: "heidi"},
-		{Name: "Ivan", HighScore: 500, Token: "ivan"},
-		{Name: "Judy", HighScore: 1000, Token: "judy"},
-	}
-
-	for _, user := range users {
-		if err := r.User.Save(user); err != nil {
-			return err
-		}
-		if err := r.Ranking.Save(user); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func main() {
 	// MySQL接続の初期化
@@ -48,7 +22,7 @@ func main() {
 	defer rdb.Close()
 
 	r := repository.New(db, rdb)
-	if err := seed(r); err != nil {
+	if err := seed.Seed(r); err != nil {
 		log.Fatalf("Failed to seed database: %v", err)
 	}
 }

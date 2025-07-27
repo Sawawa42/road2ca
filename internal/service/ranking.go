@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"road2ca/internal/repository"
-	"github.com/google/uuid"
 )
 
 type GetRankingListResponseDTO struct {
@@ -11,10 +10,10 @@ type GetRankingListResponseDTO struct {
 }
 
 type RankingItemDTO struct {
-	UserID   uuid.UUID `json:"userId"`
-	UserName string    `json:"userName"`
-	Rank     int       `json:"rank"`
-	Score    int       `json:"score"`
+	UserID   string `json:"userId"`
+	UserName string `json:"userName"`
+	Rank     int    `json:"rank"`
+	Score    int    `json:"score"`
 }
 
 type RankingService interface {
@@ -58,7 +57,7 @@ func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
 			return nil, fmt.Errorf("failed to find user by ID %d: %w", r.UserID, err)
 		}
 		result = append(result, &RankingItemDTO{
-			UserID:   r.UserID,
+			UserID:   r.UserID.String(),
 			UserName: user.Name,
 			Rank:     r.Rank,
 			Score:    r.Score,
