@@ -8,6 +8,7 @@ import (
 	"road2ca/internal/entity"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/google/uuid"
 )
 
 func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item, error) {
@@ -25,6 +26,14 @@ func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item
 	}
 
 	return items, nil
+}
+
+func GetUUIDv7Bytes() ([]byte, error) {
+	uuid, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+	return uuid.MarshalBinary()
 }
 
 // type ItemRepo interface {

@@ -1,9 +1,7 @@
 package entity
 
-import "github.com/google/uuid"
-
 type Ranking struct {
-	UserID uuid.UUID
+	UserID []byte
 	Score  int
 	Rank   int
 }

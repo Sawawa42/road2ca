@@ -7,6 +7,7 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
@@ -120,15 +121,24 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 
 	var hasItemsMap = make(map[uuid.UUID]bool)
 	for _, collection := range collections {
-		hasItemsMap[collection.ItemID] = true
+		uuid, err := uuid.FromBytes(collection.ItemID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
+		hasItemsMap[uuid] = true
 	}
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaItemDTO                    // 結果を格納するスライス
 	for _, item := range pickedItems {
-		isNew := !hasItemsMap[item.ID]
+		uuid, err := uuid.FromBytes(item.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
+
+		isNew := !hasItemsMap[uuid]
 		results = append(results, GachaItemDTO{
-			CollectionID: item.ID.String(),
+			CollectionID: uuid.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			IsNew:        isNew,

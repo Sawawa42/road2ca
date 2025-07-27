@@ -6,6 +6,8 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+
+	"github.com/google/uuid"
 )
 
 type GetUserResponseDTO struct {
@@ -45,7 +47,12 @@ func NewUserService(userRepo repository.UserRepo) UserService {
 
 func (s *userService) CreateUser(name string) (*CreateUserResponseDTO, error) {
 	token := fmt.Sprintf("%x", md5.Sum([]byte(name)))
+	uuidBytes, err := repository.GetUUIDv7Bytes()
+	if err != nil {
+		return nil, err
+	}
 	user := &entity.User{
+		ID:        uuidBytes,
 		Name:      name,
 		HighScore: 0,
 		Coin:      0,
@@ -65,8 +72,13 @@ func (s *userService) GetUser(c *minigin.Context) (*GetUserResponseDTO, error) {
 		return nil, fmt.Errorf("failed to get user")
 	}
 
+	uuid, err := uuid.FromBytes(user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse user ID: %w", err)
+	}
+
 	return &GetUserResponseDTO{
-		ID:        user.ID.String(),
+		ID:        uuid.String(),
 		Name:      user.Name,
 		HighScore: user.HighScore,
 		Coin:      user.Coin,

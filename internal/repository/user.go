@@ -3,14 +3,13 @@ package repository
 import (
 	"database/sql"
 	"road2ca/internal/entity"
-	"github.com/google/uuid"
 )
 
 type UserRepo interface {
 	Save(user *entity.User) error
 	SaveTx(tx *sql.Tx, user *entity.User) error
 	FindByToken(token string) (*entity.User, error)
-	FindByID(id uuid.UUID) (*entity.User, error)
+	FindByID(id []byte) (*entity.User, error)
 }
 
 type userRepo struct {
@@ -54,7 +53,7 @@ func (r *userRepo) FindByToken(token string) (*entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepo) FindByID(id uuid.UUID) (*entity.User, error) {
+func (r *userRepo) FindByID(id []byte) (*entity.User, error) {
 	query := "SELECT id, name, highscore, coin, token FROM users WHERE id = ?"
 	row := r.db.QueryRow(query, id)
 	user := &entity.User{}

@@ -1,9 +1,7 @@
 package entity
 
-import "github.com/google/uuid"
-
 type User struct {
-	ID        uuid.UUID
+	ID        []byte
 	Name      string
 	HighScore int
 	Coin      int

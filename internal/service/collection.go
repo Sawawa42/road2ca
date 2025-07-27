@@ -5,6 +5,7 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
@@ -26,8 +27,8 @@ type CollectionService interface {
 
 type collectionService struct {
 	collectionRepo repository.CollectionRepo
-	mysqlItemRepo repository.MySQLItemRepo
-	redisItemRepo repository.RedisItemRepo
+	mysqlItemRepo  repository.MySQLItemRepo
+	redisItemRepo  repository.RedisItemRepo
 }
 
 func NewCollectionService(collectionRepo repository.CollectionRepo, mysqlItemRepo repository.MySQLItemRepo, redisItemRepo repository.RedisItemRepo) CollectionService {
@@ -68,15 +69,23 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 	// 特定のアイテムIDがユーザのコレクションに含まれているかをチェックするためのマップを作成
 	collectionItemMap := make(map[uuid.UUID]bool)
 	for _, collection := range collections {
-		collectionItemMap[collection.ItemID] = true
+		uuid, err := uuid.FromBytes(collection.ItemID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
+		collectionItemMap[uuid] = true
 	}
 
 	res := make([]*CollectionListItemDTO, 0, len(items))
 	for _, item := range items {
+		uuid, err := uuid.FromBytes(item.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
 		// アイテム所持を判定
-		hasItem := collectionItemMap[item.ID]
+		hasItem := collectionItemMap[uuid]
 		res = append(res, &CollectionListItemDTO{
-			CollectionID: item.ID.String(),
+			CollectionID: uuid.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			HasItem:      hasItem,

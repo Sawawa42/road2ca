@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 	"road2ca/internal/entity"
-	"github.com/redis/go-redis/v9"
+
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type RankingRepo interface {
@@ -24,10 +25,15 @@ func NewRankingRepo(rdb *redis.Client) RankingRepo {
 
 // Save ランキング情報をキャッシュに保存する
 func (r *rankingRepo) Save(user *entity.User) error {
+	uuid, err := uuid.FromBytes(user.ID)
+	if err != nil {
+		return err
+	}
+
 	ctx := context.Background()
 	// sorted setを使用してランキングを保存する
 	if err := r.rdb.ZAdd(ctx, "rankings", redis.Z{
-		Score: calculateScore(user),
+		Score:  calculateScore(user, uuid),
 		Member: user.ID,
 	}).Err(); err != nil {
 		return err
@@ -36,9 +42,9 @@ func (r *rankingRepo) Save(user *entity.User) error {
 	return nil
 }
 
-func calculateScore(user *entity.User) float64 {
+func calculateScore(user *entity.User, uuid uuid.UUID) float64 {
 	// 同一スコアの場合IDの昇順にするため、Scoreの小数部にUUIDv7の時間情報を埋め込む
-	sec, _ := user.ID.Time().UnixTime()
+	sec, _ := uuid.Time().UnixTime()
 	return float64(user.HighScore) + (1.0 - (float64(sec) / (1e12 + 1.0)))
 }
 
@@ -56,7 +62,7 @@ func (r *rankingRepo) FindInRange(start, end int) ([]*entity.Ranking, error) {
 
 	results := make([]*entity.Ranking, 0, len(scores))
 	for i, score := range scores {
-		userid := score.Member.(uuid.UUID)
+		userid := score.Member.([]byte)
 		results = append(results, &entity.Ranking{
 			UserID: userid,
 			Score:  int(score.Score),

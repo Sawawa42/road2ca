@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 	"road2ca/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type GetRankingListResponseDTO struct {
@@ -56,8 +58,12 @@ func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to find user by ID %d: %w", r.UserID, err)
 		}
+		uuid, err := uuid.FromBytes(user.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse user ID: %w", err)
+		}
 		result = append(result, &RankingItemDTO{
-			UserID:   r.UserID.String(),
+			UserID:   uuid.String(),
 			UserName: user.Name,
 			Rank:     r.Rank,
 			Score:    r.Score,
