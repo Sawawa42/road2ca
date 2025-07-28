@@ -5,15 +5,16 @@ import (
 	// "database/sql"
 	// "encoding/json"
 	// "fmt"
+	"log"
 	"road2ca/internal/entity"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item, error) {
 	items, err := redisRepo.Find()
-	if err != nil {
+	if err != nil || len(items) == 0 {
 		// キャッシュにアイテムがない場合はMySQLから取得
 		if err == redis.Nil {
 			items, err = mysqlRepo.Find()
@@ -24,7 +25,7 @@ func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item
 			return nil, err
 		}
 	}
-
+	log.Printf("Found %d items in cache", len(items))
 	return items, nil
 }
 

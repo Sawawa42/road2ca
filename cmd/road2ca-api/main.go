@@ -119,6 +119,7 @@ func loadGachaServiceProps(mySqlItemRepo repository.MySQLItemRepo, redisItemRepo
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("Loaded %d items from repository", len(items))
 
 	totalWeight := 0
 	for _, item := range items {
@@ -130,6 +131,7 @@ func loadGachaServiceProps(mySqlItemRepo repository.MySQLItemRepo, redisItemRepo
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
+	log.Printf("Total weight of items: %d", totalWeight)
 	return &service.GachaServiceProps{
 		TotalWeight: totalWeight,
 		RandGen:     r,
