@@ -22,14 +22,16 @@ type GameService interface {
 type gameService struct {
 	userRepo    repository.UserRepo
 	rankingRepo repository.RankingRepo
-	settingRepo repository.SettingRepo
+	mysqlSettingRepo repository.MySQLSettingRepo
+	redisSettingRepo repository.RedisSettingRepo
 }
 
-func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, settingRepo repository.SettingRepo) GameService {
+func NewGameService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, mysqlSettingRepo repository.MySQLSettingRepo, redisSettingRepo repository.RedisSettingRepo) GameService {
 	return &gameService{
-		userRepo:    userRepo,
-		rankingRepo: rankingRepo,
-		settingRepo: settingRepo,
+		userRepo:       userRepo,
+		rankingRepo:    rankingRepo,
+		mysqlSettingRepo: mysqlSettingRepo,
+		redisSettingRepo: redisSettingRepo,
 	}
 }
 
@@ -43,7 +45,7 @@ func (s *gameService) FinalizeGame(c *minigin.Context, score int) (*GameFinishRe
 		user.HighScore = score
 	}
 
-	setting, err := s.settingRepo.FindLatest()
+	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
 	if err != nil {
 		return nil, err
 	}

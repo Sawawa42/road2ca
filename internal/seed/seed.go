@@ -14,9 +14,8 @@ func Seed(r *repository.Repositories) error {
 		return err
 	}
 
-	// TODO: SettingをDBとRDBに分けてからここを直す
 	for _, setting := range settings {
-		if err := r.Setting.Save(setting); err != nil {
+		if err := r.MySQLSetting.Save(setting); err != nil {
 			return err
 		}
 	}

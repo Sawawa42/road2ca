@@ -25,19 +25,21 @@ type RankingService interface {
 type rankingService struct {
 	rankingRepo repository.RankingRepo
 	userRepo    repository.UserRepo
-	settingRepo repository.SettingRepo
+	mysqlSettingRepo repository.MySQLSettingRepo
+	redisSettingRepo repository.RedisSettingRepo
 }
 
-func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, settingRepo repository.SettingRepo) RankingService {
+func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, mysqlSettingRepo repository.MySQLSettingRepo, redisSettingRepo repository.RedisSettingRepo) RankingService {
 	return &rankingService{
-		rankingRepo: rankingRepo,
-		userRepo:    userRepo,
-		settingRepo: settingRepo,
+		rankingRepo:   rankingRepo,
+		userRepo:      userRepo,
+		mysqlSettingRepo: mysqlSettingRepo,
+		redisSettingRepo: redisSettingRepo,
 	}
 }
 
 func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
-	setting, err := s.settingRepo.FindLatest()
+	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
 	if err != nil {
 		return nil, err
 	}

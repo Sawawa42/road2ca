@@ -25,9 +25,9 @@ func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services
 		Auth:       NewAuthService(repo.User),
 		Item:       NewItemService(repo.MySQLItem, repo.RedisItem),
 		Collection: NewCollectionService(repo.Collection, repo.MySQLItem, repo.RedisItem),
-		Ranking:    NewRankingService(repo.User, repo.Ranking, repo.Setting),
-		Game:       NewGameService(repo.User, repo.Ranking, repo.Setting),
-		Gacha:      NewGachaService(repo.MySQLItem, repo.RedisItem, repo.Collection, repo.User, repo.Setting, repo.DB, gachaProps),
-		Setting:    NewSettingService(repo.Setting),
+		Ranking:    NewRankingService(repo.User, repo.Ranking, repo.MySQLSetting, repo.RedisSetting),
+		Game:       NewGameService(repo.User, repo.Ranking, repo.MySQLSetting, repo.RedisSetting),
+		Gacha:      NewGachaService(repo.MySQLItem, repo.RedisItem, repo.MySQLSetting, repo.RedisSetting, repo.Collection, repo.User, repo.DB, gachaProps),
+		Setting:    NewSettingService(repo.MySQLSetting, repo.RedisSetting),
 	}
 }

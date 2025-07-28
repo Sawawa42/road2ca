@@ -39,9 +39,10 @@ type GachaService interface {
 type gachaService struct {
 	mysqlItemRepo  repository.MySQLItemRepo
 	redisItemRepo  repository.RedisItemRepo
+	mysqlSettingRepo repository.MySQLSettingRepo
+	redisSettingRepo repository.RedisSettingRepo
 	collectionRepo repository.CollectionRepo
 	userRepo       repository.UserRepo
-	settingRepo    repository.SettingRepo
 	db             *sql.DB
 	totalWeight    int
 	randGen        *rand.Rand
@@ -50,18 +51,20 @@ type gachaService struct {
 func NewGachaService(
 	mysqlItemRepo repository.MySQLItemRepo,
 	redisItemRepo repository.RedisItemRepo,
+	mysqlSettingRepo repository.MySQLSettingRepo,
+	redisSettingRepo repository.RedisSettingRepo,
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
-	settingRepo repository.SettingRepo,
 	db *sql.DB,
 	gachaProps *GachaServiceProps,
 ) GachaService {
 	return &gachaService{
 		mysqlItemRepo:  mysqlItemRepo,
 		redisItemRepo:  redisItemRepo,
+		mysqlSettingRepo: mysqlSettingRepo,
+		redisSettingRepo: redisSettingRepo,
 		collectionRepo: collectionRepo,
 		userRepo:       userRepo,
-		settingRepo:    settingRepo,
 		db:             db,
 		totalWeight:    gachaProps.TotalWeight,
 		randGen:        gachaProps.RandGen,
@@ -69,7 +72,7 @@ func NewGachaService(
 }
 
 func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error) {
-	setting, err := s.settingRepo.FindLatest()
+	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
 	if err != nil {
 		return nil, err
 	}
