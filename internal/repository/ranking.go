@@ -4,6 +4,7 @@ import (
 	"context"
 	"road2ca/internal/entity"
 
+	"log"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
@@ -31,10 +32,12 @@ func (r *rankingRepo) Save(user *entity.User) error {
 	}
 
 	ctx := context.Background()
+	score := calculateScore(user, uuid)
+	log.Printf("Saving user %s with score %f to Redis", uuid.String(), score)
 	// sorted setを使用してランキングを保存する
 	if err := r.rdb.ZAdd(ctx, "rankings", redis.Z{
-		Score:  calculateScore(user, uuid),
-		Member: user.ID,
+		Score:  score,
+		Member: uuid.String(),
 	}).Err(); err != nil {
 		return err
 	}
@@ -62,9 +65,17 @@ func (r *rankingRepo) FindInRange(start, end int) ([]*entity.Ranking, error) {
 
 	results := make([]*entity.Ranking, 0, len(scores))
 	for i, score := range scores {
-		userid := score.Member.([]byte)
+		uuidStr := score.Member.(string)
+		uuid, err := uuid.Parse(uuidStr)
+		if err != nil {
+			return nil, err
+		}
+		uuidBytes, err := uuid.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, &entity.Ranking{
-			UserID: userid,
+			UserID: uuidBytes,
 			Score:  int(score.Score),
 			Rank:   start + i,
 		})

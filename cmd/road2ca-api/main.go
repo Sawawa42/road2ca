@@ -17,6 +17,8 @@ import (
 	"road2ca/internal/server"
 	"road2ca/internal/service"
 	"time"
+	"os/signal"
+	"syscall"
 )
 
 var (
@@ -35,6 +37,20 @@ func main() {
 
 	rdb := initRedis()
 	defer rdb.Close()
+
+	// Ctrl+C(SIGINT)で終了した際の処理
+	sigs := make(chan os.Signal, 1)
+    signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+    go func() {
+        <-sigs
+        // Redisキャッシュをクリア
+        if err := rdb.FlushAll(context.Background()).Err(); err != nil {
+            log.Printf("Failed to clear Redis cache: %v", err)
+        }
+		db.Close()
+		rdb.Close()
+        os.Exit(0)
+    }()
 
 	h, m, err := initServer(db, rdb)
 	if err != nil {
@@ -79,18 +95,19 @@ func initRedis() *redis.Client {
 func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
 	r := repository.New(db, rdb)
 
-	gachaProps, err := loadGachaServiceProps(r.MySQLItem, r.RedisItem)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s := service.New(r, gachaProps)
+	s := service.New(r)
 	h := handler.New(s)
 	m := middleware.New(s)
 
 	if err := setDataToCache(s); err != nil {
 		return nil, nil, err
 	}
+
+	props, err := loadGachaServiceProps(r.MySQLItem, r.RedisItem)
+	if err != nil {
+		return nil, nil, err
+	}
+	s.Gacha.SetGachaProps(props)
 
 	return h, m, nil
 }
@@ -118,7 +135,6 @@ func loadGachaServiceProps(
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Loaded %d items from repository", len(items))
 
 	totalWeight := 0
 	for _, item := range items {
@@ -130,7 +146,6 @@ func loadGachaServiceProps(
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	log.Printf("Total weight of items: %d", totalWeight)
 	return &service.GachaServiceProps{
 		TotalWeight: totalWeight,
 		RandGen:     r,

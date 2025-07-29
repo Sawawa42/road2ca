@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"road2ca/internal/repository"
 )
 
@@ -26,6 +27,7 @@ func (s *itemService) SetItemToCache() error {
 		return err
 	}
 	if len(items) == 0 {
+		log.Println("No items found to set in cache")
 		return nil
 	}
 

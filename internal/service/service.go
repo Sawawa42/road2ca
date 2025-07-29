@@ -19,7 +19,7 @@ type contextKeyType string
 
 const ContextKey contextKeyType = "contextKey"
 
-func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services {
+func New(repo *repository.Repositories) *Services {
 	return &Services{
 		User:       NewUserService(repo.User),
 		Auth:       NewAuthService(repo.User),
@@ -27,7 +27,7 @@ func New(repo *repository.Repositories, gachaProps *GachaServiceProps) *Services
 		Collection: NewCollectionService(repo.Collection, repo.MySQLItem, repo.RedisItem),
 		Ranking:    NewRankingService(repo.User, repo.Ranking, repo.MySQLSetting, repo.RedisSetting),
 		Game:       NewGameService(repo.User, repo.Ranking, repo.MySQLSetting, repo.RedisSetting),
-		Gacha:      NewGachaService(repo.MySQLItem, repo.RedisItem, repo.MySQLSetting, repo.RedisSetting, repo.Collection, repo.User, repo.DB, gachaProps),
+		Gacha:      NewGachaService(repo.MySQLItem, repo.RedisItem, repo.MySQLSetting, repo.RedisSetting, repo.Collection, repo.User, repo.DB),
 		Setting:    NewSettingService(repo.MySQLSetting, repo.RedisSetting),
 	}
 }
