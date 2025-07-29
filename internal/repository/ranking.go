@@ -65,7 +65,7 @@ func (r *rankingRepo) FindInRange(start, end int) ([]*entity.Ranking, error) {
 
 	results := make([]*entity.Ranking, 0, len(scores))
 	for i, score := range scores {
-		uuidStr := score.Member.(string)
+		uuidStr := score.Member.(string) // 絶対にString型?
 		uuid, err := uuid.Parse(uuidStr)
 		if err != nil {
 			return nil, err
