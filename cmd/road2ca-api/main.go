@@ -30,11 +30,9 @@ func init() {
 }
 
 func main() {
-	// MySQL接続の初期化
 	db := initMySQL()
 	defer db.Close()
 
-	// Redis接続の初期化
 	rdb := initRedis()
 	defer rdb.Close()
 
@@ -46,7 +44,7 @@ func main() {
 	server.Serve(addr, h, m)
 }
 
-// initMySQL MySQLデータベースに接続する
+// initMySQL MySQL接続の初期化
 func initMySQL() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {
@@ -90,22 +88,20 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 	h := handler.New(s)
 	m := middleware.New(s)
 
-	// マスターデータをキャッシュに設定
-	if err := setMasterDataToCache(s); err != nil {
+	if err := setDataToCache(s); err != nil {
 		return nil, nil, err
 	}
 
 	return h, m, nil
 }
 
-func setMasterDataToCache(s *service.Services) error {
-	// 設定をキャッシュ
+// setDataToCache settingとitemを取得し、キャッシュに保存する
+func setDataToCache(s *service.Services) error {
 	if err := s.Setting.SetSettingToCache(); err != nil {
 		log.Printf("Failed to set settings to cache: %v", err)
 		return err
 	}
 
-	// itemをキャッシュ
 	if err := s.Item.SetItemToCache(); err != nil {
 		log.Printf("Failed to set items to cache: %v", err)
 		return err
@@ -114,7 +110,10 @@ func setMasterDataToCache(s *service.Services) error {
 	return nil
 }
 
-func loadGachaServiceProps(mySqlItemRepo repository.MySQLItemRepo, redisItemRepo repository.RedisItemRepo) (*service.GachaServiceProps, error) {
+func loadGachaServiceProps(
+		mySqlItemRepo repository.MySQLItemRepo,
+		redisItemRepo repository.RedisItemRepo,
+	) (*service.GachaServiceProps, error) {
 	items, err := repository.FindItems(mySqlItemRepo, redisItemRepo)
 	if err != nil {
 		return nil, err

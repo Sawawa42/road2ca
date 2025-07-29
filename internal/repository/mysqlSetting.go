@@ -6,8 +6,12 @@ import (
 )
 
 type MySQLSettingRepo interface {
+	// Save SettingをDBに保存する
 	Save(setting *entity.Setting) error
+	// FindLatest 最新のsettingを取得する
 	FindLatest() (*entity.Setting, error)
+	// Truncate テーブルを空にする
+	Truncate() error
 }
 
 type mysqlSettingRepo struct {
@@ -20,6 +24,7 @@ func NewMySQLSettingRepo(db *sql.DB) MySQLSettingRepo {
 	}
 }
 
+// Save SettingをDBに保存する
 func (r *mysqlSettingRepo) Save(setting *entity.Setting) error {
 	query := `
 	INSERT INTO settings (id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin)
@@ -42,6 +47,7 @@ func (r *mysqlSettingRepo) Save(setting *entity.Setting) error {
 	return nil
 }
 
+// FindLatest 最新のsettingを取得する
 func (r *mysqlSettingRepo) FindLatest() (*entity.Setting, error) {
 	var setting entity.Setting
 	query := "SELECT id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin FROM settings ORDER BY id DESC LIMIT 1"
@@ -55,4 +61,14 @@ func (r *mysqlSettingRepo) FindLatest() (*entity.Setting, error) {
 		return nil, err
 	}
 	return &setting, nil
+}
+
+// Truncate テーブルを空にする
+func (r *mysqlSettingRepo) Truncate() error {
+	query := "TRUNCATE TABLE settings"
+	_, err := r.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -8,9 +8,14 @@ import (
 	"road2ca/internal/repository"
 )
 
+// Seed SettingとItemをCSVから読み込み、DBに保存する。保存前にテーブルを空にする。
 func Seed(r *repository.Repositories) error {
 	settings, err := loadSettingsFromCSV("internal/seed/csv/settings.csv")
 	if err != nil {
+		return err
+	}
+
+	if err := r.MySQLSetting.Truncate(); err != nil {
 		return err
 	}
 
@@ -22,6 +27,14 @@ func Seed(r *repository.Repositories) error {
 
 	items, err := loadItemsFromCSV("internal/seed/csv/items.csv")
 	if err != nil {
+		return err
+	}
+
+	if err := r.Collection.Truncate(); err != nil {
+		return err
+	}
+
+	if err := r.MySQLItem.Truncate(); err != nil {
 		return err
 	}
 
@@ -40,6 +53,10 @@ func loadSettingsFromCSV(filePath string) ([]*entity.Setting, error) {
 	defer file.Close()
 
 	reader := csv.NewReader(file)
+	_, err = reader.Read() // ヘッダーを読み飛ばす
+	if err != nil {
+		return nil, err
+	}
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, err
@@ -73,6 +90,10 @@ func loadItemsFromCSV(filePath string) ([]*entity.Item, error) {
 	defer file.Close()
 
 	reader := csv.NewReader(file)
+	_, err = reader.Read() // ヘッダーを読み飛ばす
+	if err != nil {
+		return nil, err
+	}
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, err

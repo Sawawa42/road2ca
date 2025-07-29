@@ -4,11 +4,16 @@ import (
 	"database/sql"
 	"road2ca/internal/entity"
 	"strings"
+	"log"
 )
 
 type MySQLItemRepo interface {
+	// Save ItemsをDBに保存する
 	Save(items []*entity.Item) error
+	// Find 全てのItemsを取得する
 	Find() ([]*entity.Item, error)
+	// Truncate テーブルを空にする
+	Truncate() error
 }
 
 type mysqlItemRepo struct {
@@ -21,6 +26,7 @@ func NewMySQLItemRepo(db *sql.DB) MySQLItemRepo {
 	}
 }
 
+// Save ItemsをDBに保存する
 func (r *mysqlItemRepo) Save(items []*entity.Item) error {
 	query := "INSERT INTO items (id, name, rarity, weight) VALUES "
 	var placeholders []string
@@ -42,6 +48,7 @@ func (r *mysqlItemRepo) Save(items []*entity.Item) error {
 	return nil
 }
 
+// Find 全てのItemsを取得する
 func (r *mysqlItemRepo) Find() ([]*entity.Item, error) {
 	query := "SELECT * FROM items"
 	rows, err := r.db.Query(query)
@@ -59,4 +66,26 @@ func (r *mysqlItemRepo) Find() ([]*entity.Item, error) {
 		items = append(items, &item)
 	}
 	return items, nil
+}
+
+// Truncate テーブルを空にする
+func (r *mysqlItemRepo) Truncate() error {
+	query := "SET FOREIGN_KEY_CHECKS = 0"
+	_, err := r.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_, err := r.db.Exec("SET FOREIGN_KEY_CHECKS = 1")
+		if err != nil {
+			log.Printf("Error resetting foreign key checks: %v", err)
+		}
+	}()
+
+	query = "TRUNCATE TABLE items"
+	_, err = r.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
 }

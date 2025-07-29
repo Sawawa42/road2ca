@@ -13,11 +13,9 @@ import (
 )
 
 func main() {
-	// MySQL接続の初期化
 	db := initMySQL()
 	defer db.Close()
 
-	// Redis接続の初期化
 	rdb := initRedis()
 	defer rdb.Close()
 
@@ -27,7 +25,7 @@ func main() {
 	}
 }
 
-// initMySQL MySQLデータベースに接続する
+// initMySQL MySQL接続の初期化
 func initMySQL() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {

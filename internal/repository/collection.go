@@ -8,8 +8,12 @@ import (
 )
 
 type CollectionRepo interface {
+	// Save コレクションをDBに保存する
 	Save(tx *sql.Tx, collections []*entity.Collection) error
+	// FindByUserID ユーザーIDに紐づくコレクションを取得する
 	FindByUserID(userID []byte) ([]*entity.Collection, error)
+	// Truncate テーブルを空にする
+	Truncate() error
 }
 
 type collectionRepo struct {
@@ -67,4 +71,14 @@ func (r *collectionRepo) FindByUserID(userID []byte) ([]*entity.Collection, erro
 	}
 
 	return collections, nil
+}
+
+// Truncate テーブルを空にする
+func (r *collectionRepo) Truncate() error {
+	query := "TRUNCATE TABLE collections"
+	_, err := r.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
 }
