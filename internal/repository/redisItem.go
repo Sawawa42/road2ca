@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"road2ca/internal/entity"
+
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -32,7 +34,11 @@ func (r *redisItemRepo) Save(items []*entity.Item) error {
 		if err != nil {
 			return err
 		}
-		key := fmt.Sprintf("item:%s", item.ID)
+		uuid, err := uuid.FromBytes(item.ID)
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("item:%s", uuid.String())
 		pipe.Set(ctx, key, jsonData, 0)
 	}
 

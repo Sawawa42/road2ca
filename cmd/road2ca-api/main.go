@@ -40,13 +40,13 @@ func main() {
 
 	// Ctrl+C(SIGINT)で終了した際の処理
 	sigs := make(chan os.Signal, 1)
-    signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
-    go func() {
-        <-sigs
-        // Redisキャッシュをクリア
-        if err := rdb.FlushAll(context.Background()).Err(); err != nil {
-            log.Printf("Failed to clear Redis cache: %v", err)
-        }
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		// Redisキャッシュをクリア
+		if err := rdb.FlushAll(context.Background()).Err(); err != nil {
+			log.Printf("Failed to clear Redis cache: %v", err)
+		}
 		db.Close()
 		rdb.Close()
         os.Exit(0)
@@ -124,6 +124,7 @@ func setDataToCache(s *service.Services) error {
 		return err
 	}
 
+	log.Println("Successfully set data to cache")
 	return nil
 }
 

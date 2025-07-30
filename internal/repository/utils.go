@@ -17,6 +17,7 @@ func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item
 				return nil, err
 			}
 			log.Printf("Loaded %d items from MySQL", len(items))
+			return items, nil
 		} else {
 			return nil, err
 		}
@@ -43,6 +44,7 @@ func FindSetting(mysqlRepo MySQLSettingRepo, redisRepo RedisSettingRepo) (*entit
 				return nil, err
 			}
 			log.Println("Loaded setting from MySQL")
+			return setting, nil
 		} else {
 			return nil, err
 		}

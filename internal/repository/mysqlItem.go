@@ -71,11 +71,16 @@ func (r *mysqlItemRepo) Find() ([]*entity.Item, error) {
 // Truncate テーブルを空にする
 func (r *mysqlItemRepo) Truncate() error {
 	query := "SET FOREIGN_KEY_CHECKS = 0"
+	success := false
 	_, err := r.db.Exec(query)
 	if err != nil {
 		return err
 	}
+	success = true
 	defer func() {
+		if !success {
+			return
+		}
 		_, err := r.db.Exec("SET FOREIGN_KEY_CHECKS = 1")
 		if err != nil {
 			log.Printf("Error resetting foreign key checks: %v", err)
