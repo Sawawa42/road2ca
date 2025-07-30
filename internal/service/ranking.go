@@ -44,6 +44,7 @@ func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
 		return nil, err
 	}
 
+	// start 位から GetRankingLimit 件のランキングを取得
 	end := start + setting.GetRankingLimit - 1
 	if start < 0 || setting.GetRankingLimit < 0 || start >= end {
 		return nil, fmt.Errorf("invalid range: start=%d, end=%d", start, end)
