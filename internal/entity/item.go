@@ -1,7 +1,7 @@
 package entity
 
 type Item struct {
-	ID     int
+	ID     []byte
 	Name   string
 	Rarity int
 	Weight int

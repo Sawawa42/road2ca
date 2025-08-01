@@ -1,7 +1,7 @@
 package entity
 
 type Collection struct {
-	ID     int
-	UserID int
-	ItemID int
+	ID     []byte
+	UserID []byte
+	ItemID []byte
 }

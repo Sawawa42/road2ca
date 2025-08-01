@@ -17,6 +17,8 @@ import (
 	"road2ca/internal/server"
 	"road2ca/internal/service"
 	"time"
+	"os/signal"
+	"syscall"
 )
 
 var (
@@ -30,13 +32,25 @@ func init() {
 }
 
 func main() {
-	// MySQL接続の初期化
 	db := initMySQL()
 	defer db.Close()
 
-	// Redis接続の初期化
 	rdb := initRedis()
 	defer rdb.Close()
+
+	// Ctrl+C(SIGINT)で終了した際の処理
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		// Redisキャッシュをクリア
+		if err := rdb.FlushAll(context.Background()).Err(); err != nil {
+			log.Printf("Failed to clear Redis cache: %v", err)
+		}
+		db.Close()
+		rdb.Close()
+        os.Exit(0)
+    }()
 
 	h, m, err := initServer(db, rdb)
 	if err != nil {
@@ -46,7 +60,7 @@ func main() {
 	server.Serve(addr, h, m)
 }
 
-// initMySQL MySQLデータベースに接続する
+// initMySQL MySQL接続の初期化
 func initMySQL() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {
@@ -81,51 +95,51 @@ func initRedis() *redis.Client {
 func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
 	r := repository.New(db, rdb)
 
-	gachaProps, err := loadGachaServiceProps(r.Item)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s := service.New(r, gachaProps)
+	s := service.New(r)
 	h := handler.New(s)
 	m := middleware.New(s)
 
-	// マスターデータをキャッシュに設定
-	if err := setMasterDataToCache(s); err != nil {
+	if err := setDataToCache(s); err != nil {
 		return nil, nil, err
 	}
+
+	props, err := loadGachaServiceProps(r.MySQLItem, r.RedisItem)
+	if err != nil {
+		return nil, nil, err
+	}
+	s.Gacha.SetGachaProps(props)
 
 	return h, m, nil
 }
 
-func setMasterDataToCache(s *service.Services) error {
-	// 設定をキャッシュ
+// setDataToCache settingとitemを取得し、キャッシュに保存する
+func setDataToCache(s *service.Services) error {
 	if err := s.Setting.SetSettingToCache(); err != nil {
+		log.Printf("Failed to set settings to cache: %v", err)
 		return err
 	}
 
-	// itemをキャッシュ
 	if err := s.Item.SetItemToCache(); err != nil {
+		log.Printf("Failed to set items to cache: %v", err)
 		return err
 	}
 
+	log.Println("Successfully set data to cache")
 	return nil
 }
 
-func loadGachaServiceProps(itemRepo repository.ItemRepo) (*service.GachaServiceProps, error) {
-	items, err := itemRepo.Find()
+func loadGachaServiceProps(
+		mySqlItemRepo repository.MySQLItemRepo,
+		redisItemRepo repository.RedisItemRepo,
+	) (*service.GachaServiceProps, error) {
+	items, err := repository.FindItems(mySqlItemRepo, redisItemRepo)
 	if err != nil {
 		return nil, err
-	}
-	if len(items) == 0 {
-		return nil, fmt.Errorf("no items found in cache")
 	}
 
 	totalWeight := 0
 	for _, item := range items {
-		if item.Weight == 0 {
-			continue // 重みが0のアイテムは無視する
-		} else if item.Weight < 0 {
+		if item.Weight < 1 {
 			return nil, fmt.Errorf("item has invalid weight: %s", item.Name)
 		}
 		totalWeight += item.Weight

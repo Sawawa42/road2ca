@@ -7,6 +7,9 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+
+	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type DrawGachaRequestDTO struct {
@@ -18,7 +21,7 @@ type DrawGachaResponseDTO struct {
 }
 
 type GachaItemDTO struct {
-	CollectionID int    `json:"collectionID"`
+	CollectionID string `json:"collectionID"`
 	Name         string `json:"name"`
 	Rarity       int    `json:"rarity"`
 	IsNew        bool   `json:"isNew"`
@@ -31,39 +34,43 @@ type GachaServiceProps struct {
 
 type GachaService interface {
 	DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error)
+	SetGachaProps(props *GachaServiceProps)
 }
 
 type gachaService struct {
-	itemRepo       repository.ItemRepo
+	mysqlItemRepo  repository.MySQLItemRepo
+	redisItemRepo  repository.RedisItemRepo
+	mysqlSettingRepo repository.MySQLSettingRepo
+	redisSettingRepo repository.RedisSettingRepo
 	collectionRepo repository.CollectionRepo
 	userRepo       repository.UserRepo
-	settingRepo    repository.SettingRepo
 	db             *sql.DB
 	totalWeight    int
 	randGen        *rand.Rand
 }
 
 func NewGachaService(
-	itemRepo repository.ItemRepo,
+	mysqlItemRepo repository.MySQLItemRepo,
+	redisItemRepo repository.RedisItemRepo,
+	mysqlSettingRepo repository.MySQLSettingRepo,
+	redisSettingRepo repository.RedisSettingRepo,
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
-	settingRepo repository.SettingRepo,
 	db *sql.DB,
-	gachaProps *GachaServiceProps,
 ) GachaService {
 	return &gachaService{
-		itemRepo:       itemRepo,
+		mysqlItemRepo:  mysqlItemRepo,
+		redisItemRepo:  redisItemRepo,
+		mysqlSettingRepo: mysqlSettingRepo,
+		redisSettingRepo: redisSettingRepo,
 		collectionRepo: collectionRepo,
 		userRepo:       userRepo,
-		settingRepo:    settingRepo,
 		db:             db,
-		totalWeight:    gachaProps.TotalWeight,
-		randGen:        gachaProps.RandGen,
 	}
 }
 
 func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error) {
-	setting, err := s.settingRepo.FindLatest()
+	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
 	if err != nil {
 		return nil, err
 	}
@@ -81,10 +88,18 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("not enough coins")
 	}
 
-	// アイテムを取得
-	items, err := s.itemRepo.Find()
+	// アイテムをキャッシュから取得
+	items, err := s.redisItemRepo.Find()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get items: %w", err)
+		// キャッシュにアイテムがない場合はMySQLから取得
+		if err == redis.Nil {
+			items, err = s.mysqlItemRepo.Find()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	// 重み付き抽選でアイテムを選ぶ
@@ -105,17 +120,26 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var hasItemsMap = make(map[int]bool)
+	var hasItemsMap = make(map[uuid.UUID]bool)
 	for _, collection := range collections {
-		hasItemsMap[collection.ItemID] = true
+		uuid, err := uuid.FromBytes(collection.ItemID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
+		hasItemsMap[uuid] = true
 	}
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaItemDTO                    // 結果を格納するスライス
 	for _, item := range pickedItems {
-		isNew := !hasItemsMap[item.ID]
+		uuid, err := uuid.FromBytes(item.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
+
+		isNew := !hasItemsMap[uuid]
 		results = append(results, GachaItemDTO{
-			CollectionID: item.ID,
+			CollectionID: uuid.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			IsNew:        isNew,
@@ -151,4 +175,9 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	return &DrawGachaResponseDTO{
 		Results: results,
 	}, nil
+}
+
+func (s *gachaService) SetGachaProps(props *GachaServiceProps) {
+	s.totalWeight = props.TotalWeight
+	s.randGen = props.RandGen
 }

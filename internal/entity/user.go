@@ -1,7 +1,7 @@
 package entity
 
 type User struct {
-	ID        int
+	ID        []byte
 	Name      string
 	HighScore int
 	Coin      int

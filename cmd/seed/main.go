@@ -8,52 +8,24 @@ import (
 	"github.com/redis/go-redis/v9"
 	"log"
 	"os"
-	"road2ca/internal/entity"
 	"road2ca/internal/repository"
+	"road2ca/internal/seed"
 )
 
-func seed(r *repository.Repositories) error {
-	users := []*entity.User{
-		{ID: 2, Name: "Alice", HighScore: 100, Token: "alice"},
-		{ID: 3, Name: "Bob", HighScore: 200, Token: "bob"},
-		{ID: 4, Name: "Charlie", HighScore: 150, Token: "charlie"},
-		{ID: 5, Name: "Dave", HighScore: 300, Token: "dave"},
-		{ID: 6, Name: "Eve", HighScore: 250, Token: "eve"},
-		{ID: 7, Name: "Frank", HighScore: 400, Token: "frank"},
-		{ID: 8, Name: "Grace", HighScore: 350, Token: "grace"},
-		{ID: 9, Name: "Heidi", HighScore: 450, Token: "heidi"},
-		{ID: 10, Name: "Ivan", HighScore: 500, Token: "ivan"},
-		{ID: 11, Name: "Judy", HighScore: 1000, Token: "judy"},
-	}
-
-	for _, user := range users {
-		if err := r.User.Save(user); err != nil {
-			return err
-		}
-		if err := r.Ranking.Save(user); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func main() {
-	// MySQL接続の初期化
 	db := initMySQL()
 	defer db.Close()
 
-	// Redis接続の初期化
 	rdb := initRedis()
 	defer rdb.Close()
 
 	r := repository.New(db, rdb)
-	if err := seed(r); err != nil {
+	if err := seed.Seed(r); err != nil {
 		log.Fatalf("Failed to seed database: %v", err)
 	}
 }
 
-// initMySQL MySQLデータベースに接続する
+// initMySQL MySQL接続の初期化
 func initMySQL() *sql.DB {
 	err := godotenv.Load()
 	if err != nil {

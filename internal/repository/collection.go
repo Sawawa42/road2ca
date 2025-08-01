@@ -7,8 +7,12 @@ import (
 )
 
 type CollectionRepo interface {
+	// Save コレクションをDBに保存する
 	Save(tx *sql.Tx, collections []*entity.Collection) error
-	FindByUserID(userID int) ([]*entity.Collection, error)
+	// FindByUserID ユーザーIDに紐づくコレクションを取得する
+	FindByUserID(userID []byte) ([]*entity.Collection, error)
+	// Truncate テーブルを空にする
+	Truncate() error
 }
 
 type collectionRepo struct {
@@ -25,12 +29,16 @@ func (r *collectionRepo) Save(tx *sql.Tx, collections []*entity.Collection) erro
 		return nil
 	}
 
-	query := "INSERT INTO collections (userId, itemId) VALUES "
+	query := "INSERT INTO collections (id, userId, itemId) VALUES "
 	var placeholders []string
 	var args []interface{}
 	for _, collection := range collections {
-		placeholders = append(placeholders, "(?, ?)")
-		args = append(args, collection.UserID, collection.ItemID)
+		placeholders = append(placeholders, "(?, ?, ?)")
+		uuidBytes, err := GetUUIDv7Bytes()
+		if err != nil {
+			return err
+		}
+		args = append(args, uuidBytes, collection.UserID, collection.ItemID)
 	}
 	query += strings.Join(placeholders, ", ")
 	query += " ON DUPLICATE KEY UPDATE itemId = VALUES(itemId)"
@@ -40,7 +48,7 @@ func (r *collectionRepo) Save(tx *sql.Tx, collections []*entity.Collection) erro
 }
 
 // FindByUserID ユーザーIDに紐づくコレクションを取得する
-func (r *collectionRepo) FindByUserID(userID int) ([]*entity.Collection, error) {
+func (r *collectionRepo) FindByUserID(userID []byte) ([]*entity.Collection, error) {
 	query := `SELECT id, userId, itemId FROM collections WHERE userId = ?`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
@@ -62,4 +70,14 @@ func (r *collectionRepo) FindByUserID(userID int) ([]*entity.Collection, error) 
 	}
 
 	return collections, nil
+}
+
+// Truncate テーブルを空にする
+func (r *collectionRepo) Truncate() error {
+	query := "TRUNCATE TABLE collections"
+	_, err := r.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -9,7 +9,7 @@ type UserRepo interface {
 	Save(user *entity.User) error
 	SaveTx(tx *sql.Tx, user *entity.User) error
 	FindByToken(token string) (*entity.User, error)
-	FindByID(id int) (*entity.User, error)
+	FindByID(id []byte) (*entity.User, error)
 }
 
 type userRepo struct {
@@ -22,23 +22,23 @@ func NewUserRepo(db *sql.DB) UserRepo {
 
 func (r *userRepo) Save(user *entity.User) error {
 	query := `
-		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
+		INSERT INTO users (id, name, highscore, coin, token) VALUES (?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		name = VALUES(name),
 		highscore = VALUES(highscore),
 		coin = VALUES(coin)`
-	_, err := r.db.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
+	_, err := r.db.Exec(query, user.ID, user.Name, user.HighScore, user.Coin, user.Token)
 	return err
 }
 
 func (r *userRepo) SaveTx(tx *sql.Tx, user *entity.User) error {
 	query := `
-		INSERT INTO users (name, highscore, coin, token) VALUES (?, ?, ?, ?)
+		INSERT INTO users (id, name, highscore, coin, token) VALUES (?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE
 		name = VALUES(name),
 		highscore = VALUES(highscore),
 		coin = VALUES(coin)`
-	_, err := tx.Exec(query, user.Name, user.HighScore, user.Coin, user.Token)
+	_, err := tx.Exec(query, user.ID, user.Name, user.HighScore, user.Coin, user.Token)
 	return err
 }
 
@@ -53,7 +53,7 @@ func (r *userRepo) FindByToken(token string) (*entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepo) FindByID(id int) (*entity.User, error) {
+func (r *userRepo) FindByID(id []byte) (*entity.User, error) {
 	query := "SELECT id, name, highscore, coin, token FROM users WHERE id = ?"
 	row := r.db.QueryRow(query, id)
 	user := &entity.User{}

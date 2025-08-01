@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"log"
 	"road2ca/internal/repository"
 )
 
@@ -10,26 +10,29 @@ type ItemService interface {
 }
 
 type itemService struct {
-	itemRepo repository.ItemRepo
+	mySqlItemRepo repository.MySQLItemRepo
+	redisItemRepo repository.RedisItemRepo
 }
 
-func NewItemService(itemRepo repository.ItemRepo) ItemService {
+func NewItemService(mySqlItemRepo repository.MySQLItemRepo, redisItemRepo repository.RedisItemRepo) ItemService {
 	return &itemService{
-		itemRepo: itemRepo,
+		mySqlItemRepo: mySqlItemRepo,
+		redisItemRepo: redisItemRepo,
 	}
 }
 
 func (s *itemService) SetItemToCache() error {
-	items, err := s.itemRepo.Find()
+	items, err := repository.FindItems(s.mySqlItemRepo, s.redisItemRepo)
 	if err != nil {
-		return fmt.Errorf("failed to find items from MySQL: %w", err)
+		return err
 	}
 	if len(items) == 0 {
-		return fmt.Errorf("no items found in MySQL")
+		log.Println("No items found to set in cache")
+		return nil
 	}
 
-	if err := s.itemRepo.Save(items); err != nil {
-		return fmt.Errorf("failed to cache items to Redis: %w", err)
+	if err := s.redisItemRepo.Save(items); err != nil {
+		return err
 	}
 
 	return nil

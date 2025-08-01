@@ -1,7 +1,7 @@
 package entity
 
 type Setting struct {
-	ID                   int
+	ID                   []byte
 	Name                 string
 	GachaCoinConsumption int
 	DrawGachaMaxTimes    int

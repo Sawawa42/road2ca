@@ -5,6 +5,9 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
+
+	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 type CollectionListResponseDTO struct {
@@ -12,7 +15,7 @@ type CollectionListResponseDTO struct {
 }
 
 type CollectionListItemDTO struct {
-	CollectionID int    `json:"collectionID"`
+	CollectionID string `json:"collectionID"`
 	Name         string `json:"name"`
 	Rarity       int    `json:"rarity"`
 	HasItem      bool   `json:"hasItem"`
@@ -24,13 +27,15 @@ type CollectionService interface {
 
 type collectionService struct {
 	collectionRepo repository.CollectionRepo
-	itemRepo       repository.ItemRepo
+	mysqlItemRepo  repository.MySQLItemRepo
+	redisItemRepo  repository.RedisItemRepo
 }
 
-func NewCollectionService(collectionRepo repository.CollectionRepo, itemRepo repository.ItemRepo) CollectionService {
+func NewCollectionService(collectionRepo repository.CollectionRepo, mysqlItemRepo repository.MySQLItemRepo, redisItemRepo repository.RedisItemRepo) CollectionService {
 	return &collectionService{
 		collectionRepo: collectionRepo,
-		itemRepo:       itemRepo,
+		mysqlItemRepo:  mysqlItemRepo,
+		redisItemRepo:  redisItemRepo,
 	}
 }
 
@@ -41,11 +46,20 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		return nil, fmt.Errorf("failed to get user from context")
 	}
 
-	// アイテムを取得
-	items, err := s.itemRepo.Find()
+	// アイテムをキャッシュから取得
+	items, err := s.redisItemRepo.Find()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get items: %w", err)
+		// キャッシュにアイテムがない場合はMySQLから取得
+		if err == redis.Nil {
+			items, err = s.mysqlItemRepo.Find()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
+
 	// ユーザーのコレクションを取得
 	collections, err := s.collectionRepo.FindByUserID(user.ID)
 	if err != nil {
@@ -53,17 +67,25 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 	}
 
 	// 特定のアイテムIDがユーザのコレクションに含まれているかをチェックするためのマップを作成
-	collectionItemMap := make(map[int]bool)
+	collectionItemMap := make(map[uuid.UUID]bool)
 	for _, collection := range collections {
-		collectionItemMap[collection.ItemID] = true
+		uuid, err := uuid.FromBytes(collection.ItemID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
+		collectionItemMap[uuid] = true
 	}
 
 	res := make([]*CollectionListItemDTO, 0, len(items))
 	for _, item := range items {
+		uuid, err := uuid.FromBytes(item.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+		}
 		// アイテム所持を判定
-		hasItem := collectionItemMap[item.ID]
+		hasItem := collectionItemMap[uuid]
 		res = append(res, &CollectionListItemDTO{
-			CollectionID: item.ID,
+			CollectionID: uuid.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			HasItem:      hasItem,

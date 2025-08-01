@@ -17,22 +17,24 @@ type SettingService interface {
 }
 
 type settingService struct {
-	settingRepo repository.SettingRepo
+	mysqlSettingRepo repository.MySQLSettingRepo
+	redisSettingRepo repository.RedisSettingRepo
 }
 
-func NewSettingService(settingRepo repository.SettingRepo) SettingService {
+func NewSettingService(mysqlSettingRepo repository.MySQLSettingRepo, redisSettingRepo repository.RedisSettingRepo) SettingService {
 	return &settingService{
-		settingRepo: settingRepo,
+		mysqlSettingRepo: mysqlSettingRepo,
+		redisSettingRepo: redisSettingRepo,
 	}
 }
 
 func (s *settingService) SetSettingToCache() error {
-	setting, err := s.settingRepo.FindLatest()
+	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
 	if err != nil {
 		return err
 	}
 
-	if err := s.settingRepo.Save(setting); err != nil {
+	if err := s.redisSettingRepo.Save(setting); err != nil {
 		return err
 	}
 
@@ -40,7 +42,7 @@ func (s *settingService) SetSettingToCache() error {
 }
 
 func (s *settingService) GetSettings() (*GetSettingResponseDTO, error) {
-	setting, err := s.settingRepo.FindLatest()
+	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
 	if err != nil {
 		return nil, err
 	}
