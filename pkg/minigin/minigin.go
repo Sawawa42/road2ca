@@ -19,10 +19,32 @@ type RouterGroup struct {
 }
 
 type Context struct {
-	Writer   http.ResponseWriter
+	Writer   ResponseWriter
 	Request  *http.Request
 	handlers []HandlerFunc
 	index    int
+}
+
+type ResponseWriter struct {
+	Writer http.ResponseWriter
+	status int
+}
+
+func (w *ResponseWriter) Header() http.Header {
+	return w.Writer.Header()
+}
+
+func (w *ResponseWriter) WriteHeader(statusCode int) {
+	w.status = statusCode
+	w.Writer.WriteHeader(statusCode)
+}
+
+func (w *ResponseWriter) Write(data []byte) (int, error) {
+	return w.Writer.Write(data)
+}
+
+func (w *ResponseWriter) Status() int {
+	return w.status
 }
 
 type Engine struct {
@@ -96,8 +118,13 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rw := ResponseWriter{
+		Writer: w,
+		status: 0,
+	}
+
 	c := &Context{
-		Writer:   w,
+		Writer:   rw,
 		Request:  r,
 		handlers: methodHandlers,
 		index:    -1,
