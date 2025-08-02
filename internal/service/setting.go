@@ -9,9 +9,9 @@ type GetSettingResponseDTO struct {
 	DrawGachaMaxTimes    int `json:"drawGachaMaxTimes"`
 	GetRankingLimit      int `json:"getRankingLimit"`
 	RewardCoin           int `json:"rewardCoin"`
-	Rarity3Ratio         int `json:"rarity3Ratio"`
-	Rarity2Ratio         int `json:"rarity2Ratio"`
-	Rarity1Ratio         int `json:"rarity1Ratio"`
+	Rarity3Ratio         float64 `json:"rarity3Ratio"`
+	Rarity2Ratio         float64 `json:"rarity2Ratio"`
+	Rarity1Ratio         float64 `json:"rarity1Ratio"`
 }
 
 type SettingService interface {

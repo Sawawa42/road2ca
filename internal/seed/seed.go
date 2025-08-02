@@ -6,26 +6,27 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"strconv"
+	"fmt"
 )
 
 // Seed SettingとItemをCSVから読み込み、DBに保存する。保存前にテーブルを空にする。
-func Seed(r *repository.Repositories) error {
+func Seed(mysqlItem repository.MySQLItemRepo, mysqlSetting repository.MySQLSettingRepo, collectionRepo repository.CollectionRepo) error {
 	settings, err := loadSettingsFromCSV("internal/seed/csv/settings.csv")
 	if err != nil {
 		return err
 	}
 
-	if err := r.MySQLSetting.Truncate(); err != nil {
+	if err := mysqlSetting.Truncate(); err != nil {
 		return err
 	}
 
 	for _, setting := range settings {
-		if err := r.MySQLSetting.Save(setting); err != nil {
+		if err := mysqlSetting.Save(setting); err != nil {
 			return err
 		}
 	}
 
-	setting, err := r.MySQLSetting.FindLatest()
+	setting, err := mysqlSetting.FindLatest()
 	if err != nil {
 		return err
 	}
@@ -35,17 +36,19 @@ func Seed(r *repository.Repositories) error {
 		return err
 	}
 
-	if err := r.Collection.Truncate(); err != nil {
+	if err := collectionRepo.Truncate(); err != nil {
 		return err
 	}
 
-	if err := r.MySQLItem.Truncate(); err != nil {
+	if err := mysqlItem.Truncate(); err != nil {
 		return err
 	}
 
-	setWeightToItems(items, setting)
+	if err := setWeightToItems(items, setting); err != nil {
+		return err
+	}
 
-	if err := r.MySQLItem.Save(items); err != nil {
+	if err := mysqlItem.Save(items); err != nil {
 		return err
 	}
 
@@ -75,9 +78,9 @@ func loadSettingsFromCSV(filePath string) ([]*entity.Setting, error) {
 		DrawGachaMaxTimes, _ := strconv.Atoi(record[2])
 		GetRankingLimit, _ := strconv.Atoi(record[3])
 		RewardCoin, _ := strconv.Atoi(record[4])
-		Rarity3Ratio, _ := strconv.Atoi(record[5])
-		Rarity2Ratio, _ := strconv.Atoi(record[6])
-		Rarity1Ratio, _ := strconv.Atoi(record[7])
+		Rarity3Ratio, _ := strconv.ParseFloat(record[5], 64)
+		Rarity2Ratio, _ := strconv.ParseFloat(record[6], 64)
+		Rarity1Ratio, _ := strconv.ParseFloat(record[7], 64)
 
 		setting := &entity.Setting{
 			Name:                 record[0],
@@ -127,11 +130,17 @@ func loadItemsFromCSV(filePath string) ([]*entity.Item, error) {
 	return items, nil
 }
 
-func setWeightToItems(items []*entity.Item, setting *entity.Setting) {
+func setWeightToItems(items []*entity.Item, setting *entity.Setting) error {
+	if setting.Rarity3Ratio + setting.Rarity2Ratio + setting.Rarity1Ratio != 100 {
+		return fmt.Errorf("total rarity ratio must be 100, got %f + %f + %f = %f",
+			setting.Rarity3Ratio, setting.Rarity2Ratio, setting.Rarity1Ratio,
+			setting.Rarity3Ratio + setting.Rarity2Ratio + setting.Rarity1Ratio)
+	}
+
 	totalRarityWeights := map[int]int{
-		3: setting.Rarity3Ratio,
-		2: setting.Rarity2Ratio,
-		1: setting.Rarity1Ratio,
+		3: int(setting.Rarity3Ratio * 100000),
+		2: int(setting.Rarity2Ratio * 100000),
+		1: int(setting.Rarity1Ratio * 100000),
 	}
 
 	itemsByRarity := make(map[int][]*entity.Item)
@@ -157,4 +166,6 @@ func setWeightToItems(items []*entity.Item, setting *entity.Setting) {
 			}
 		}
 	}
+
+	return nil
 }
