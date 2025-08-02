@@ -24,6 +24,7 @@ func NewCollectionHandler(collectionService service.CollectionService) Collectio
 func (h *collectionHandler) HandleGetCollectionList(c *minigin.Context) {
 	res, err := h.collectionService.GetCollectionList(c)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

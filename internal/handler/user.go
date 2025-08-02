@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
@@ -28,6 +29,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 	var req service.CreateUserRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
@@ -35,6 +37,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 	}
 
 	if req.Name == "" {
+		c.Error(fmt.Errorf("name is required"))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Name is required",
 		})
@@ -43,6 +46,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 
 	res, err := h.userService.CreateUser(req.Name)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})
@@ -55,6 +59,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 func (h *userHandler) HandleGetUser(c *minigin.Context) {
 	res, err := h.userService.GetUser(c)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})
@@ -69,6 +74,7 @@ func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 	var req service.UpdateUserRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
@@ -76,6 +82,7 @@ func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 	}
 
 	if req.Name == "" {
+		c.Error(fmt.Errorf("name is required"))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Name is required",
 		})
@@ -83,6 +90,7 @@ func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 	}
 
 	if err := h.userService.UpdateUser(c, req.Name); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

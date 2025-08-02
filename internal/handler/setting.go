@@ -24,6 +24,7 @@ func NewSettingHandler(settingService service.SettingService) SettingHandler {
 func (h *settingHandler) HandleGetSetting(c *minigin.Context) {
 	res, err := h.settingService.GetSettings()
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

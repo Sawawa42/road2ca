@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log"
 	"log/slog"
@@ -18,7 +19,7 @@ type Logger interface {
 	SettingLogger(c *minigin.Context)
 }
 
-type logger struct{
+type logger struct {
 	accessLogger *slog.Logger
 	errorLogger  *slog.Logger
 }
@@ -32,8 +33,8 @@ func NewLogger() (Logger, error) {
 	if err != nil {
 		return nil, err
 	}
-	accessLogger := slog.New(slog.NewTextHandler(accessFile, nil))
-	errorLogger := slog.New(slog.NewTextHandler(errorFile, nil))
+	accessLogger := slog.New(slog.NewJSONHandler(accessFile, nil))
+	errorLogger := slog.New(slog.NewJSONHandler(errorFile, nil))
 	return &logger{
 		accessLogger: accessLogger,
 		errorLogger:  errorLogger,
@@ -50,6 +51,17 @@ func (l *logger) SettingLogger(c *minigin.Context) {
 		reqBody, _ = io.ReadAll(c.Request.Body)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(reqBody))
 	}
+
+	var reqId string
+	reqUuid, err := uuid.NewV7()
+	if err != nil {
+		reqId = "unknown"
+	} else {
+		reqId = reqUuid.String()
+	}
+
+	// 一応後続ハンドラでもリクエストIDを参照できるようにcontextにセット
+	c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), service.ReqIdContextKey, reqId))
 
 	c.Next()
 	duration := time.Since(startTime)
@@ -68,6 +80,7 @@ func (l *logger) SettingLogger(c *minigin.Context) {
 	}
 
 	accessAttr := []slog.Attr{
+		slog.String("requestId", reqId),
 		slog.Time("time", startTime),
 		slog.String("method", c.Request.Method),
 		slog.String("path", c.Request.URL.Path),
@@ -83,6 +96,28 @@ func (l *logger) SettingLogger(c *minigin.Context) {
 	}
 
 	l.accessLogger.Info("access", accessArgs...)
+
+	if len(c.Errors) > 0 {
+		errorAttr := []slog.Attr{
+			slog.String("requestId", reqId),
+			slog.Time("time", startTime),
+			slog.String("method", c.Request.Method),
+			slog.String("path", c.Request.URL.Path),
+			slog.Int("status", statusCode),
+			slog.Duration("duration", duration),
+			slog.String("ip", c.Request.RemoteAddr),
+			slog.String("userId", userId),
+			slog.String("requestBody", string(reqBody)),
+		}
+		for _, err := range c.Errors {
+			errorAttr = append(errorAttr, slog.String("error", err.Error()))
+		}
+		errorArgs := make([]any, len(errorAttr))
+		for i, attr := range errorAttr {
+			errorArgs[i] = attr
+		}
+		l.errorLogger.Error("error", errorArgs...)
+	}
 
 	log.Printf("Method: %s, Path: %s, Status: %d, Duration: %s",
 		c.Request.Method, c.Request.URL.Path, statusCode, duration)

@@ -18,6 +18,7 @@ type Services struct {
 type contextKeyType string
 
 const ContextKey contextKeyType = "contextKey"
+const ReqIdContextKey contextKeyType = "reqIdContextKey"
 
 func New(repo *repository.Repositories) *Services {
 	return &Services{
