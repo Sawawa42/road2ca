@@ -8,12 +8,15 @@ import (
 )
 
 // Serve HTTPサーバを起動する
-func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
+func Serve(addr string, h *handler.Handler, m *middleware.Middleware, l middleware.Logger) {
 	// ルーターの初期化
 	router := minigin.New()
 
 	// CORS対応など共通の設定を適用
 	router.Use(m.Cors.SettingCors)
+
+	// ロガーを適用
+	router.Use(l.SettingLogger)
 
 	router.GET("/setting/get", h.Setting.HandleGetSetting)
 

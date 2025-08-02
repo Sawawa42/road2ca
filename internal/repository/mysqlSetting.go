@@ -15,7 +15,7 @@ type MySQLSettingRepo interface {
 }
 
 type mysqlSettingRepo struct {
-	db  *sql.DB
+	db *sql.DB
 }
 
 func NewMySQLSettingRepo(db *sql.DB) MySQLSettingRepo {

@@ -47,7 +47,7 @@ func NewUserService(userRepo repository.UserRepo) UserService {
 }
 
 func (s *userService) CreateUser(name string) (*CreateUserResponseDTO, error) {
-	token := fmt.Sprintf("%x", md5.Sum([]byte(name + fmt.Sprintf("%d", time.Now().UnixNano()))))
+	token := fmt.Sprintf("%x", md5.Sum([]byte(name+fmt.Sprintf("%d", time.Now().UnixNano()))))
 	uuidBytes, err := repository.GetUUIDv7Bytes()
 	if err != nil {
 		return nil, err

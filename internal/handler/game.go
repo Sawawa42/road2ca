@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
@@ -27,6 +28,7 @@ func NewGameHandler(userService service.UserService, gameService service.GameSer
 func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	var req service.GameFinishRequestDTO
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
@@ -34,6 +36,7 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	}
 
 	if req.Score < 0 {
+		c.Error(fmt.Errorf("score must be non-negative"))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
@@ -43,6 +46,7 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	// ゲーム終了処理を実行
 	res, err := h.gameService.FinalizeGame(c, req.Score)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

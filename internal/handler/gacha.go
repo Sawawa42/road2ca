@@ -6,6 +6,7 @@ import (
 	"road2ca/pkg/minigin"
 
 	"encoding/json"
+	"fmt"
 )
 
 type GachaHandler interface {
@@ -27,6 +28,7 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 	var req service.DrawGachaRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
@@ -34,6 +36,7 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 	}
 
 	if req.Times < 1 || req.Times > 100 {
+		c.Error(fmt.Errorf("times must be between 1 and 100"))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Times must be between 1 and 100",
 		})
@@ -42,6 +45,7 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 
 	res, err := h.gachaService.DrawGacha(c, req.Times)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Failed to draw gacha",
 		})

@@ -2,11 +2,9 @@ package repository
 
 import (
 	"context"
-	"road2ca/internal/entity"
-
-	"log"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"road2ca/internal/entity"
 )
 
 type RankingRepo interface {
@@ -33,7 +31,6 @@ func (r *rankingRepo) Save(user *entity.User) error {
 
 	ctx := context.Background()
 	score := calculateScore(user, uuid)
-	log.Printf("Saving user %s with score %f to Redis", uuid.String(), score)
 	// sorted setを使用してランキングを保存する
 	if err := r.rdb.ZAdd(ctx, "rankings", redis.Z{
 		Score:  score,

@@ -1,11 +1,10 @@
 package middleware
 
 import (
-	"log"
+	"fmt"
 	"net/http"
-	"road2ca/pkg/minigin"
-
 	"road2ca/internal/service"
+	"road2ca/pkg/minigin"
 )
 
 type AuthMiddleware interface {
@@ -27,6 +26,7 @@ func (m *authMiddleware) Authenticate(c *minigin.Context) {
 	// 認証情報を取得
 	token := c.Request.Header.Get("x-token")
 	if len(token) < 1 {
+		c.Error(fmt.Errorf("missing x-token header"))
 		c.JSON(http.StatusUnauthorized, minigin.H{
 			"error": "Unauthorized",
 		})
@@ -35,7 +35,7 @@ func (m *authMiddleware) Authenticate(c *minigin.Context) {
 
 	err := m.authService.SaveTokenToContext(token, c)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
+		c.Error(err)
 		c.JSON(http.StatusUnauthorized, minigin.H{
 			"error": "Unauthorized",
 		})
