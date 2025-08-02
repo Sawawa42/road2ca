@@ -1,7 +1,7 @@
 package service
 
 import (
-	"log"
+	"fmt"
 	"road2ca/internal/repository"
 )
 
@@ -27,8 +27,7 @@ func (s *itemService) SetItemToCache() error {
 		return err
 	}
 	if len(items) == 0 {
-		log.Println("No items found to set in cache")
-		return nil
+		return fmt.Errorf("no items found in both MySQL and Redis")
 	}
 
 	if err := s.redisItemRepo.Save(items); err != nil {

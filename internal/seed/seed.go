@@ -4,8 +4,8 @@ import (
 	"encoding/csv"
 	"os"
 	"road2ca/internal/entity"
-	"strconv"
 	"road2ca/internal/repository"
+	"strconv"
 )
 
 // Seed SettingとItemをCSVから読み込み、DBに保存する。保存前にテーブルを空にする。
@@ -70,11 +70,11 @@ func loadSettingsFromCSV(filePath string) ([]*entity.Setting, error) {
 		RewardCoin, _ := strconv.Atoi(record[4])
 
 		setting := &entity.Setting{
-			Name:                   record[0],
-			GachaCoinConsumption:   GachaCoinConsumption,
-			DrawGachaMaxTimes:      DrawGachaMaxTimes,
-			GetRankingLimit:        GetRankingLimit,
-			RewardCoin:             RewardCoin,
+			Name:                 record[0],
+			GachaCoinConsumption: GachaCoinConsumption,
+			DrawGachaMaxTimes:    DrawGachaMaxTimes,
+			GetRankingLimit:      GetRankingLimit,
+			RewardCoin:           RewardCoin,
 		}
 		settings = append(settings, setting)
 	}

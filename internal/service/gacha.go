@@ -38,15 +38,15 @@ type GachaService interface {
 }
 
 type gachaService struct {
-	mysqlItemRepo  repository.MySQLItemRepo
-	redisItemRepo  repository.RedisItemRepo
+	mysqlItemRepo    repository.MySQLItemRepo
+	redisItemRepo    repository.RedisItemRepo
 	mysqlSettingRepo repository.MySQLSettingRepo
 	redisSettingRepo repository.RedisSettingRepo
-	collectionRepo repository.CollectionRepo
-	userRepo       repository.UserRepo
-	db             *sql.DB
-	totalWeight    int
-	randGen        *rand.Rand
+	collectionRepo   repository.CollectionRepo
+	userRepo         repository.UserRepo
+	db               *sql.DB
+	totalWeight      int
+	randGen          *rand.Rand
 }
 
 func NewGachaService(
@@ -59,13 +59,13 @@ func NewGachaService(
 	db *sql.DB,
 ) GachaService {
 	return &gachaService{
-		mysqlItemRepo:  mysqlItemRepo,
-		redisItemRepo:  redisItemRepo,
+		mysqlItemRepo:    mysqlItemRepo,
+		redisItemRepo:    redisItemRepo,
 		mysqlSettingRepo: mysqlSettingRepo,
 		redisSettingRepo: redisSettingRepo,
-		collectionRepo: collectionRepo,
-		userRepo:       userRepo,
-		db:             db,
+		collectionRepo:   collectionRepo,
+		userRepo:         userRepo,
+		db:               db,
 	}
 }
 

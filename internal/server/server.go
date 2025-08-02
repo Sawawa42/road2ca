@@ -15,6 +15,9 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 	// CORS対応など共通の設定を適用
 	router.Use(m.Cors.SettingCors)
 
+	// ロガーを適用
+	router.Use(m.Logger.SettingLogger)
+
 	router.GET("/setting/get", h.Setting.HandleGetSetting)
 
 	userGroup := router.Group("/user")

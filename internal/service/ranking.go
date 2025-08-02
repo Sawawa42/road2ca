@@ -23,16 +23,16 @@ type RankingService interface {
 }
 
 type rankingService struct {
-	rankingRepo repository.RankingRepo
-	userRepo    repository.UserRepo
+	rankingRepo      repository.RankingRepo
+	userRepo         repository.UserRepo
 	mysqlSettingRepo repository.MySQLSettingRepo
 	redisSettingRepo repository.RedisSettingRepo
 }
 
 func NewRankingService(userRepo repository.UserRepo, rankingRepo repository.RankingRepo, mysqlSettingRepo repository.MySQLSettingRepo, redisSettingRepo repository.RedisSettingRepo) RankingService {
 	return &rankingService{
-		rankingRepo:   rankingRepo,
-		userRepo:      userRepo,
+		rankingRepo:      rankingRepo,
+		userRepo:         userRepo,
 		mysqlSettingRepo: mysqlSettingRepo,
 		redisSettingRepo: redisSettingRepo,
 	}

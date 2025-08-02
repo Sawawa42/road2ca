@@ -50,7 +50,7 @@ func (g *RouterGroup) handle(method, relativePath string, handler HandlerFunc) {
 	finalHandlers := make([]HandlerFunc, 0, len(collectedMiddlewares)+1)
 	finalHandlers = append(finalHandlers, collectedMiddlewares...)
 	finalHandlers = append(finalHandlers, handler)
-	
+
 	g.engine.addRoute(method, absPath, finalHandlers)
 }
 

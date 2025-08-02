@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
@@ -25,7 +24,6 @@ func NewCollectionHandler(collectionService service.CollectionService) Collectio
 func (h *collectionHandler) HandleGetCollectionList(c *minigin.Context) {
 	res, err := h.collectionService.GetCollectionList(c)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

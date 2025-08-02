@@ -11,14 +11,14 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/signal"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/server"
 	"road2ca/internal/service"
-	"time"
-	"os/signal"
 	"syscall"
+	"time"
 )
 
 var (
@@ -49,8 +49,8 @@ func main() {
 		}
 		db.Close()
 		rdb.Close()
-        os.Exit(0)
-    }()
+		os.Exit(0)
+	}()
 
 	h, m, err := initServer(db, rdb)
 	if err != nil {
@@ -115,23 +115,20 @@ func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Mi
 // setDataToCache settingとitemを取得し、キャッシュに保存する
 func setDataToCache(s *service.Services) error {
 	if err := s.Setting.SetSettingToCache(); err != nil {
-		log.Printf("Failed to set settings to cache: %v", err)
 		return err
 	}
 
 	if err := s.Item.SetItemToCache(); err != nil {
-		log.Printf("Failed to set items to cache: %v", err)
 		return err
 	}
 
-	log.Println("Successfully set data to cache")
 	return nil
 }
 
 func loadGachaServiceProps(
-		mySqlItemRepo repository.MySQLItemRepo,
-		redisItemRepo repository.RedisItemRepo,
-	) (*service.GachaServiceProps, error) {
+	mySqlItemRepo repository.MySQLItemRepo,
+	redisItemRepo repository.RedisItemRepo,
+) (*service.GachaServiceProps, error) {
 	items, err := repository.FindItems(mySqlItemRepo, redisItemRepo)
 	if err != nil {
 		return nil, err

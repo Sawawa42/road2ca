@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
@@ -26,7 +25,6 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 	// クエリパラメータからstartを取得
 	start, err := c.QueryInt("start")
 	if err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid start parameter",
 		})
@@ -42,7 +40,6 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 
 	res, err := h.rankingService.GetRanking(start)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

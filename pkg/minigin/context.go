@@ -3,7 +3,6 @@ package minigin
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -67,7 +66,6 @@ type H map[string]any
 func (c *Context) JSON(code int, obj any) {
 	json, err := json.Marshal(obj)
 	if err != nil {
-		log.Printf("Failed to json.Marshal: %v", err)
 		c.JSON(http.StatusInternalServerError, H{"error": "Internal server error"})
 		return
 	}

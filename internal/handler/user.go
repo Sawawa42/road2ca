@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
@@ -44,7 +43,6 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 
 	res, err := h.userService.CreateUser(req.Name)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})
@@ -57,7 +55,6 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 func (h *userHandler) HandleGetUser(c *minigin.Context) {
 	res, err := h.userService.GetUser(c)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})
@@ -86,7 +83,6 @@ func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
 	}
 
 	if err := h.userService.UpdateUser(c, req.Name); err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusInternalServerError, minigin.H{
 			"error": "Internal server error",
 		})

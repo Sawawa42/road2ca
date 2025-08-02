@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"road2ca/internal/entity"
 	"strings"
-	"log"
 )
 
 type MySQLItemRepo interface {
@@ -81,10 +80,7 @@ func (r *mysqlItemRepo) Truncate() error {
 		if !success {
 			return
 		}
-		_, err := r.db.Exec("SET FOREIGN_KEY_CHECKS = 1")
-		if err != nil {
-			log.Printf("Error resetting foreign key checks: %v", err)
-		}
+		r.db.Exec("SET FOREIGN_KEY_CHECKS = 1")
 	}()
 
 	query = "TRUNCATE TABLE items"

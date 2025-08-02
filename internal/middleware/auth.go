@@ -1,11 +1,9 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
-	"road2ca/pkg/minigin"
-
 	"road2ca/internal/service"
+	"road2ca/pkg/minigin"
 )
 
 type AuthMiddleware interface {
@@ -35,7 +33,6 @@ func (m *authMiddleware) Authenticate(c *minigin.Context) {
 
 	err := m.authService.SaveTokenToContext(token, c)
 	if err != nil {
-		log.Printf("ERROR: %v", err)
 		c.JSON(http.StatusUnauthorized, minigin.H{
 			"error": "Unauthorized",
 		})

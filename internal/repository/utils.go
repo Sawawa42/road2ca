@@ -1,10 +1,9 @@
 package repository
 
 import (
-	"road2ca/internal/entity"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
-	"log"
+	"road2ca/internal/entity"
 )
 
 func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item, error) {
@@ -16,13 +15,11 @@ func FindItems(mysqlRepo MySQLItemRepo, redisRepo RedisItemRepo) ([]*entity.Item
 			if err != nil {
 				return nil, err
 			}
-			log.Printf("Loaded %d items from MySQL", len(items))
 			return items, nil
 		} else {
 			return nil, err
 		}
 	}
-	log.Printf("Loaded %d items from redis", len(items))
 	return items, nil
 }
 
@@ -43,12 +40,10 @@ func FindSetting(mysqlRepo MySQLSettingRepo, redisRepo RedisSettingRepo) (*entit
 			if err != nil {
 				return nil, err
 			}
-			log.Println("Loaded setting from MySQL")
 			return setting, nil
 		} else {
 			return nil, err
 		}
 	}
-	log.Println("Loaded setting from redis")
 	return setting, nil
 }
