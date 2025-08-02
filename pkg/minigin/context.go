@@ -12,6 +12,7 @@ type Context struct {
 	Request  *http.Request
 	handlers []HandlerFunc
 	index    int
+	Errors   []error
 }
 
 type ResponseWriter struct {
@@ -81,4 +82,11 @@ func (c *Context) QueryInt(key string) (int, error) {
 		return strconv.Atoi(value[0])
 	}
 	return 0, fmt.Errorf("query parameter %s not found", key)
+}
+
+// Error はエラーをContextに追加する
+func (c *Context) Error(err error) {
+	if err != nil {
+		c.Errors = append(c.Errors, err)
+	}
 }
