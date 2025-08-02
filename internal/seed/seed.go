@@ -25,6 +25,11 @@ func Seed(r *repository.Repositories) error {
 		}
 	}
 
+	setting, err := r.MySQLSetting.FindLatest()
+	if err != nil {
+		return err
+	}
+
 	items, err := loadItemsFromCSV("internal/seed/csv/items.csv")
 	if err != nil {
 		return err
@@ -37,6 +42,8 @@ func Seed(r *repository.Repositories) error {
 	if err := r.MySQLItem.Truncate(); err != nil {
 		return err
 	}
+
+	setWeightToItems(items, setting)
 
 	if err := r.MySQLItem.Save(items); err != nil {
 		return err
@@ -68,6 +75,9 @@ func loadSettingsFromCSV(filePath string) ([]*entity.Setting, error) {
 		DrawGachaMaxTimes, _ := strconv.Atoi(record[2])
 		GetRankingLimit, _ := strconv.Atoi(record[3])
 		RewardCoin, _ := strconv.Atoi(record[4])
+		Rarity3Ratio, _ := strconv.Atoi(record[5])
+		Rarity2Ratio, _ := strconv.Atoi(record[6])
+		Rarity1Ratio, _ := strconv.Atoi(record[7])
 
 		setting := &entity.Setting{
 			Name:                 record[0],
@@ -75,6 +85,9 @@ func loadSettingsFromCSV(filePath string) ([]*entity.Setting, error) {
 			DrawGachaMaxTimes:    DrawGachaMaxTimes,
 			GetRankingLimit:      GetRankingLimit,
 			RewardCoin:           RewardCoin,
+			Rarity3Ratio:         Rarity3Ratio,
+			Rarity2Ratio:         Rarity2Ratio,
+			Rarity1Ratio:         Rarity1Ratio,
 		}
 		settings = append(settings, setting)
 	}
@@ -102,15 +115,46 @@ func loadItemsFromCSV(filePath string) ([]*entity.Item, error) {
 	var items []*entity.Item
 	for _, record := range records {
 		rarity, _ := strconv.Atoi(record[1])
-		weight, _ := strconv.Atoi(record[2])
 
 		item := &entity.Item{
 			Name:   record[0],
 			Rarity: rarity,
-			Weight: weight,
+			Weight: 0,
 		}
 		items = append(items, item)
 	}
 
 	return items, nil
+}
+
+func setWeightToItems(items []*entity.Item, setting *entity.Setting) {
+	totalRarityWeights := map[int]int{
+		3: setting.Rarity3Ratio,
+		2: setting.Rarity2Ratio,
+		1: setting.Rarity1Ratio,
+	}
+
+	itemsByRarity := make(map[int][]*entity.Item)
+	for _, item := range items {
+		itemsByRarity[item.Rarity] = append(itemsByRarity[item.Rarity], item)
+	}
+
+	for rarity, itemsInGroup := range itemsByRarity {
+		totalWeight := totalRarityWeights[rarity]
+		count := len(itemsInGroup)
+
+		if count == 0 {
+			continue
+		}
+
+		baseWeight := totalWeight / count
+		remainder := totalWeight % count
+
+		for i, item := range itemsInGroup {
+			item.Weight = baseWeight
+			if i < remainder {
+				item.Weight++
+			}
+		}
+	}
 }

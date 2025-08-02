@@ -9,6 +9,9 @@ type GetSettingResponseDTO struct {
 	DrawGachaMaxTimes    int `json:"drawGachaMaxTimes"`
 	GetRankingLimit      int `json:"getRankingLimit"`
 	RewardCoin           int `json:"rewardCoin"`
+	Rarity3Ratio         int `json:"rarity3Ratio"`
+	Rarity2Ratio         int `json:"rarity2Ratio"`
+	Rarity1Ratio         int `json:"rarity1Ratio"`
 }
 
 type SettingService interface {
@@ -52,5 +55,8 @@ func (s *settingService) GetSettings() (*GetSettingResponseDTO, error) {
 		DrawGachaMaxTimes:    setting.DrawGachaMaxTimes,
 		GetRankingLimit:      setting.GetRankingLimit,
 		RewardCoin:           setting.RewardCoin,
+		Rarity3Ratio:         setting.Rarity3Ratio,
+		Rarity2Ratio:         setting.Rarity2Ratio,
+		Rarity1Ratio:         setting.Rarity1Ratio,
 	}, nil
 }
