@@ -7,13 +7,11 @@ import (
 type Middleware struct {
 	Auth   AuthMiddleware
 	Cors   CorsMiddleware
-	Logger LoggerMiddleware
 }
 
 func New(s *service.Services) *Middleware {
 	return &Middleware{
 		Auth:   NewAuthMiddleware(s.Auth),
 		Cors:   NewCorsMiddleware(),
-		Logger: NewLoggerMiddleware(),
 	}
 }

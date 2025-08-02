@@ -52,12 +52,12 @@ func main() {
 		os.Exit(0)
 	}()
 
-	h, m, err := initServer(db, rdb)
+	h, m, l, err := initServer(db, rdb)
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %+v", err)
 	}
 
-	server.Serve(addr, h, m)
+	server.Serve(addr, h, m, l)
 }
 
 // initMySQL MySQL接続の初期化
@@ -92,24 +92,28 @@ func initRedis() *redis.Client {
 	return rdb
 }
 
-func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, error) {
+func initServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, middleware.Logger, error) {
 	r := repository.New(db, rdb)
 
 	s := service.New(r)
 	h := handler.New(s)
 	m := middleware.New(s)
+	l, err := middleware.NewLogger()
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
 	if err := setDataToCache(s); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	props, err := loadGachaServiceProps(r.MySQLItem, r.RedisItem)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	s.Gacha.SetGachaProps(props)
 
-	return h, m, nil
+	return h, m, l, nil
 }
 
 // setDataToCache settingとitemを取得し、キャッシュに保存する
