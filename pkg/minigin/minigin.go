@@ -1,51 +1,8 @@
 package minigin
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"path"
-	"strconv"
 )
-
-type HandlerFunc func(*Context)
-
-type RouterGroup struct {
-	prefix      string
-	middlewares []HandlerFunc
-	parent      *RouterGroup
-	engine      *Engine
-}
-
-type Context struct {
-	Writer   ResponseWriter
-	Request  *http.Request
-	handlers []HandlerFunc
-	index    int
-}
-
-type ResponseWriter struct {
-	Writer http.ResponseWriter
-	status int
-}
-
-func (w *ResponseWriter) Header() http.Header {
-	return w.Writer.Header()
-}
-
-func (w *ResponseWriter) WriteHeader(statusCode int) {
-	w.status = statusCode
-	w.Writer.WriteHeader(statusCode)
-}
-
-func (w *ResponseWriter) Write(data []byte) (int, error) {
-	return w.Writer.Write(data)
-}
-
-func (w *ResponseWriter) Status() int {
-	return w.status
-}
 
 type Engine struct {
 	*RouterGroup
@@ -56,35 +13,7 @@ type Engine struct {
 	trees map[string]map[string][]HandlerFunc
 }
 
-func (c *Context) Next() {
-	c.index++
-	if c.index < len(c.handlers) {
-		c.handlers[c.index](c)
-	}
-}
-
-type H map[string]any
-
-func (c *Context) JSON(code int, obj any) {
-	json, err := json.Marshal(obj)
-	if err != nil {
-		log.Printf("Failed to json.Marshal: %v", err)
-		c.JSON(http.StatusInternalServerError, H{"error": "Internal server error"})
-		return
-	}
-	c.Writer.Header().Set("Content-Type", "application/json")
-	c.Writer.WriteHeader(code)
-	c.Writer.Write(json)
-}
-
-func (c *Context) QueryInt(key string) (int, error) {
-	values := c.Request.URL.Query()
-	if value, ok := values[key]; ok && len(value) > 0 {
-		return strconv.Atoi(value[0])
-	}
-	return 0, fmt.Errorf("query parameter %s not found", key)
-}
-
+// New はEngineインスタンスの作成
 func New() *Engine {
 	engine := &Engine{
 		trees: make(map[string]map[string][]HandlerFunc),
@@ -93,6 +22,7 @@ func New() *Engine {
 	return engine
 }
 
+// addRoute はエンジンにルートを追加する
 func (e *Engine) addRoute(method, relativePath string, handlers []HandlerFunc) {
 	if e.trees[relativePath] == nil {
 		e.trees[relativePath] = make(map[string][]HandlerFunc)
@@ -100,6 +30,7 @@ func (e *Engine) addRoute(method, relativePath string, handlers []HandlerFunc) {
 	e.trees[relativePath][method] = handlers
 }
 
+// ServeHTTP http.Handlerインターフェースの実装
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
@@ -118,9 +49,10 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rw := ResponseWriter{
+	rw := &ResponseWriter{
 		Writer: w,
 		status: 0,
+		size:   0,
 	}
 
 	c := &Context{
@@ -133,39 +65,7 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Next()
 }
 
-func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
-	g.middlewares = append(g.middlewares, middlewares...)
-}
-
-func (g *RouterGroup) Group(prefix string) *RouterGroup {
-	newGroup := &RouterGroup{
-		prefix: g.prefix + prefix,
-		parent: g,
-		engine: g.engine,
-	}
-	return newGroup
-}
-
-func (g *RouterGroup) handle(method, relativePath string, handler HandlerFunc) {
-	absPath := path.Join(g.prefix, relativePath)
-	var handlers []HandlerFunc
-	group := g
-	for group != nil {
-		handlers = append(group.middlewares, handlers...)
-		group = group.parent
-	}
-	handlers = append(handlers, handler)
-	g.engine.addRoute(method, absPath, handlers)
-}
-
-func (g *RouterGroup) GET(relativePath string, handler HandlerFunc) {
-	g.handle(http.MethodGet, relativePath, handler)
-}
-
-func (g *RouterGroup) POST(relativePath string, handler HandlerFunc) {
-	g.handle(http.MethodPost, relativePath, handler)
-}
-
+// Run HTTPサーバを指定のアドレスで起動する
 func (e *Engine) Run(addr string) error {
 	return http.ListenAndServe(addr, e)
 }
