@@ -23,7 +23,6 @@ func NewRankingHandler(rankingService service.RankingService) RankingHandler {
 
 // HandleGetRankingList ランキング一覧取得処理
 func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
-	defer c.Next()
 	// クエリパラメータからstartを取得
 	start, err := c.QueryInt("start")
 	if err != nil {

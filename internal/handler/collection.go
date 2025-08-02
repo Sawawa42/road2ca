@@ -23,7 +23,6 @@ func NewCollectionHandler(collectionService service.CollectionService) Collectio
 
 // HandleGetCollectionList コレクション一覧取得処理
 func (h *collectionHandler) HandleGetCollectionList(c *minigin.Context) {
-	defer c.Next()
 	res, err := h.collectionService.GetCollectionList(c)
 	if err != nil {
 		log.Printf("ERROR: %v", err)

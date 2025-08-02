@@ -23,7 +23,6 @@ func NewSettingHandler(settingService service.SettingService) SettingHandler {
 
 // HandleGetSetting 設定情報を取得する
 func (h *settingHandler) HandleGetSetting(c *minigin.Context) {
-	defer c.Next()
 	res, err := h.settingService.GetSettings()
 	if err != nil {
 		log.Printf("ERROR: %v", err)

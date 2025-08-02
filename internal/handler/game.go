@@ -25,7 +25,6 @@ func NewGameHandler(userService service.UserService, gameService service.GameSer
 
 // HandleGameFinish ゲーム終了処理
 func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
-	defer c.Next()
 	var req service.GameFinishRequestDTO
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
 		c.JSON(http.StatusBadRequest, minigin.H{
