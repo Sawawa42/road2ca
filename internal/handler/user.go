@@ -26,6 +26,7 @@ func NewUserHandler(userService service.UserService) UserHandler {
 
 // HandleCreateUser ユーザ登録処理
 func (h *userHandler) HandleCreateUser(c *minigin.Context) {
+	defer c.Next()
 	var req service.CreateUserRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
@@ -55,6 +56,7 @@ func (h *userHandler) HandleCreateUser(c *minigin.Context) {
 
 // HandleGetUser ユーザ情報取得処理
 func (h *userHandler) HandleGetUser(c *minigin.Context) {
+	defer c.Next()
 	res, err := h.userService.GetUser(c)
 	if err != nil {
 		log.Printf("ERROR: %v", err)
@@ -69,6 +71,7 @@ func (h *userHandler) HandleGetUser(c *minigin.Context) {
 
 // HandleUpdateUser ユーザ情報更新処理
 func (h *userHandler) HandleUpdateUser(c *minigin.Context) {
+	defer c.Next()
 	var req service.UpdateUserRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {

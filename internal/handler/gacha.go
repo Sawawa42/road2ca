@@ -24,6 +24,7 @@ func NewGachaHandler(gachaService service.GachaService) GachaHandler {
 
 // HandleGachaDraw ガチャを引く処理
 func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
+	defer c.Next()
 	var req service.DrawGachaRequestDTO
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&req); err != nil {
