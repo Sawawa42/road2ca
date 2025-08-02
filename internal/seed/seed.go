@@ -2,11 +2,12 @@ package seed
 
 import (
 	"encoding/csv"
+	"fmt"
+	"math"
 	"os"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"strconv"
-	"fmt"
 )
 
 // Seed SettingとItemをCSVから読み込み、DBに保存する。保存前にテーブルを空にする。
@@ -74,13 +75,34 @@ func loadSettingsFromCSV(filePath string) ([]*entity.Setting, error) {
 
 	var settings []*entity.Setting
 	for _, record := range records {
-		GachaCoinConsumption, _ := strconv.Atoi(record[1])
-		DrawGachaMaxTimes, _ := strconv.Atoi(record[2])
-		GetRankingLimit, _ := strconv.Atoi(record[3])
-		RewardCoin, _ := strconv.Atoi(record[4])
-		Rarity3Ratio, _ := strconv.ParseFloat(record[5], 64)
-		Rarity2Ratio, _ := strconv.ParseFloat(record[6], 64)
-		Rarity1Ratio, _ := strconv.ParseFloat(record[7], 64)
+		GachaCoinConsumption, err := strconv.Atoi(record[1])
+		if err != nil {
+			return nil, err
+		}
+		DrawGachaMaxTimes, err := strconv.Atoi(record[2])
+		if err != nil {
+			return nil, err
+		}
+		GetRankingLimit, err := strconv.Atoi(record[3])
+		if err != nil {
+			return nil, err
+		}
+		RewardCoin, err := strconv.Atoi(record[4])
+		if err != nil {
+			return nil, err
+		}
+		Rarity3Ratio, err := strconv.ParseFloat(record[5], 64)
+		if err != nil {
+			return nil, err
+		}
+		Rarity2Ratio, err := strconv.ParseFloat(record[6], 64)
+		if err != nil {
+			return nil, err
+		}
+		Rarity1Ratio, err := strconv.ParseFloat(record[7], 64)
+		if err != nil {
+			return nil, err
+		}
 
 		setting := &entity.Setting{
 			Name:                 record[0],
@@ -117,7 +139,10 @@ func loadItemsFromCSV(filePath string) ([]*entity.Item, error) {
 
 	var items []*entity.Item
 	for _, record := range records {
-		rarity, _ := strconv.Atoi(record[1])
+		rarity, err := strconv.Atoi(record[1])
+		if err != nil {
+			return nil, err
+		}
 
 		item := &entity.Item{
 			Name:   record[0],
@@ -131,16 +156,17 @@ func loadItemsFromCSV(filePath string) ([]*entity.Item, error) {
 }
 
 func setWeightToItems(items []*entity.Item, setting *entity.Setting) error {
-	if setting.Rarity3Ratio + setting.Rarity2Ratio + setting.Rarity1Ratio != 100 {
-		return fmt.Errorf("total rarity ratio must be 100, got %f + %f + %f = %f",
-			setting.Rarity3Ratio, setting.Rarity2Ratio, setting.Rarity1Ratio,
-			setting.Rarity3Ratio + setting.Rarity2Ratio + setting.Rarity1Ratio)
+	sum := setting.Rarity3Ratio + setting.Rarity2Ratio + setting.Rarity1Ratio
+	const epsilon = 1e-6
+	if math.Abs(sum-100.0) > epsilon {
+		return fmt.Errorf("total rarity ratio must be 100, got %f", sum)
 	}
 
+	const rarityRatioScale = 100000
 	totalRarityWeights := map[int]int{
-		3: int(setting.Rarity3Ratio * 100000),
-		2: int(setting.Rarity2Ratio * 100000),
-		1: int(setting.Rarity1Ratio * 100000),
+		3: int(math.Round(setting.Rarity3Ratio * float64(rarityRatioScale))),
+		2: int(math.Round(setting.Rarity2Ratio * float64(rarityRatioScale))),
+		1: int(math.Round(setting.Rarity1Ratio * float64(rarityRatioScale))),
 	}
 
 	itemsByRarity := make(map[int][]*entity.Item)

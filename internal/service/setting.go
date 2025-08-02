@@ -5,10 +5,10 @@ import (
 )
 
 type GetSettingResponseDTO struct {
-	GachaCoinConsumption int `json:"gachaCoinConsumption"`
-	DrawGachaMaxTimes    int `json:"drawGachaMaxTimes"`
-	GetRankingLimit      int `json:"getRankingLimit"`
-	RewardCoin           int `json:"rewardCoin"`
+	GachaCoinConsumption int     `json:"gachaCoinConsumption"`
+	DrawGachaMaxTimes    int     `json:"drawGachaMaxTimes"`
+	GetRankingLimit      int     `json:"getRankingLimit"`
+	RewardCoin           int     `json:"rewardCoin"`
 	Rarity3Ratio         float64 `json:"rarity3Ratio"`
 	Rarity2Ratio         float64 `json:"rarity2Ratio"`
 	Rarity1Ratio         float64 `json:"rarity1Ratio"`
