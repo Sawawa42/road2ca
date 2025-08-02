@@ -25,11 +25,11 @@ type logger struct {
 }
 
 func NewLogger() (Logger, error) {
-	accessFile, err := os.OpenFile("access.log", os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0644)
+	accessFile, err := os.OpenFile("access.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err
 	}
-	errorFile, err := os.OpenFile("error.log", os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0644)
+	errorFile, err := os.OpenFile("error.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err
 	}

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"os"
 	"road2ca/internal/repository"
@@ -16,11 +14,10 @@ func main() {
 	db := initMySQL()
 	defer db.Close()
 
-	rdb := initRedis()
-	defer rdb.Close()
-
-	r := repository.New(db, rdb)
-	if err := seed.Seed(r); err != nil {
+	mi := repository.NewMySQLItemRepo(db)
+	ms := repository.NewMySQLSettingRepo(db)
+	mc := repository.NewCollectionRepo(db)
+	if err := seed.Seed(mi, ms, mc); err != nil {
 		log.Fatalf("Failed to seed database: %v", err)
 	}
 }
@@ -43,16 +40,4 @@ func initMySQL() *sql.DB {
 		log.Fatalf("Failed to ping database: %+v", err)
 	}
 	return db
-}
-
-// initRedis Redis接続の初期化
-func initRedis() *redis.Client {
-	addr := "localhost:6379"
-	rdb := redis.NewClient(&redis.Options{
-		Addr: addr,
-	})
-	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
-		log.Fatalf("Failed to connect to Redis: %+v", err)
-	}
-	return rdb
 }

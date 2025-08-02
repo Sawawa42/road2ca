@@ -27,20 +27,13 @@ func NewMySQLSettingRepo(db *sql.DB) MySQLSettingRepo {
 // Save SettingをDBに保存する
 func (r *mysqlSettingRepo) Save(setting *entity.Setting) error {
 	query := `
-	INSERT INTO settings (id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin)
-	VALUES (?, ?, ?, ?, ?, ?)
-	ON DUPLICATE KEY UPDATE
-	name = VALUES(name),
-	gachaCoinConsumption = VALUES(gachaCoinConsumption),
-	drawGachaMaxTimes = VALUES(drawGachaMaxTimes),
-	getRankingLimit = VALUES(getRankingLimit),
-	rewardCoin = VALUES(rewardCoin)
-	`
+	INSERT INTO settings (id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin, rarity3Ratio, rarity2Ratio, rarity1Ratio)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	uuidBytes, err := GetUUIDv7Bytes()
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Exec(query, uuidBytes, setting.Name, setting.GachaCoinConsumption, setting.DrawGachaMaxTimes, setting.GetRankingLimit, setting.RewardCoin)
+	_, err = r.db.Exec(query, uuidBytes, setting.Name, setting.GachaCoinConsumption, setting.DrawGachaMaxTimes, setting.GetRankingLimit, setting.RewardCoin, setting.Rarity3Ratio, setting.Rarity2Ratio, setting.Rarity1Ratio)
 	if err != nil {
 		return err
 	}
@@ -50,10 +43,10 @@ func (r *mysqlSettingRepo) Save(setting *entity.Setting) error {
 // FindLatest 最新のsettingを取得する
 func (r *mysqlSettingRepo) FindLatest() (*entity.Setting, error) {
 	var setting entity.Setting
-	query := "SELECT id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin FROM settings ORDER BY id DESC LIMIT 1"
+	query := "SELECT id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin, rarity3Ratio, rarity2Ratio, rarity1Ratio FROM settings ORDER BY id DESC LIMIT 1"
 	row := r.db.QueryRow(query)
 
-	err := row.Scan(&setting.ID, &setting.Name, &setting.GachaCoinConsumption, &setting.DrawGachaMaxTimes, &setting.GetRankingLimit, &setting.RewardCoin)
+	err := row.Scan(&setting.ID, &setting.Name, &setting.GachaCoinConsumption, &setting.DrawGachaMaxTimes, &setting.GetRankingLimit, &setting.RewardCoin, &setting.Rarity3Ratio, &setting.Rarity2Ratio, &setting.Rarity1Ratio)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil // No settings found
