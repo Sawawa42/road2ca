@@ -30,12 +30,16 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware, l middlewa
 		userGroup.POST("/update", h.User.HandleUpdateUser)
 	}
 
-	// 認証ミドルウェアを適用
-	router.Use(m.Auth.Authenticate)
-	router.GET("/collection/list", h.Collection.HandleGetCollectionList)
-	router.GET("/ranking/list", h.Ranking.HandleGetRankingList)
-	router.POST("/game/finish", h.Game.HandleGameFinish)
-	router.POST("/gacha/draw", h.Gacha.HandleGachaDraw)
+	authGroup := router.Group("/")
+	{
+		// 認証ミドルウェアを適用
+		authGroup.Use(m.Auth.Authenticate)
+		authGroup.GET("/collection/list", h.Collection.HandleGetCollectionList)
+		authGroup.GET("/ranking/list", h.Ranking.HandleGetRankingList)
+		authGroup.POST("/game/finish", h.Game.HandleGameFinish)
+		authGroup.POST("/gacha/draw", h.Gacha.HandleGachaDraw)
+	}
+
 
 	// サーバを起動
 	log.Println("Server running...")
