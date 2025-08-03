@@ -12,3 +12,11 @@ up:
 
 down:
 	docker compose down
+
+rmvolumes:
+	@volumes=$$(docker volume ls -qf dangling=true); \
+    if [ -n "$$volumes" ]; then \
+        docker volume rm $$volumes; \
+    else \
+        echo "No dangling volumes to remove."; \
+    fi
