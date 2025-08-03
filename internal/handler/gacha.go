@@ -7,6 +7,7 @@ import (
 
 	"encoding/json"
 	"fmt"
+	"errors"
 )
 
 type GachaHandler interface {
@@ -47,7 +48,7 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 	if err != nil {
 		c.Error(err)
 		var errorMsg string
-		if err.Error() == "not enough coins" {
+		if errors.Is(err, service.ErrNotEnoughCoins) {
 			errorMsg = "Not enough coins"
 		} else {
 			errorMsg = "Failed to draw gacha"
