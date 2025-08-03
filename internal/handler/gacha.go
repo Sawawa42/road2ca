@@ -46,8 +46,14 @@ func (h *gachaHandler) HandleGachaDraw(c *minigin.Context) {
 	res, err := h.gachaService.DrawGacha(c, req.Times)
 	if err != nil {
 		c.Error(err)
+		var errorMsg string
+		if err.Error() == "not enough coins" {
+			errorMsg = "Not enough coins"
+		} else {
+			errorMsg = "Failed to draw gacha"
+		}
 		c.JSON(http.StatusInternalServerError, minigin.H{
-			"error": "Failed to draw gacha",
+			"error": errorMsg,
 		})
 		return
 	}
