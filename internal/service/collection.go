@@ -66,30 +66,25 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	// 特定のアイテムIDがユーザのコレクションに含まれているかをチェックするためのマップを作成
-	collectionItemMap := make(map[uuid.UUID]bool)
-	for _, collection := range collections {
-		uuid, err := uuid.FromBytes(collection.ItemID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
-		}
-		collectionItemMap[uuid] = true
-	}
-
 	res := make([]*CollectionListItemDTO, 0, len(items))
-	for _, item := range items {
-		uuid, err := uuid.FromBytes(item.ID)
+	for _, collection := range collections {
+		uuid, err := uuid.FromBytes(collection.ID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+			return nil, err
 		}
-		// アイテム所持を判定
-		hasItem := collectionItemMap[uuid]
-		res = append(res, &CollectionListItemDTO{
-			CollectionID: uuid.String(),
-			Name:         item.Name,
-			Rarity:       item.Rarity,
-			HasItem:      hasItem,
-		})
+		for _, item := range items {
+			hasItem := false
+			if item.ID == collection.ItemID {
+				hasItem = true
+			}
+			res = append(res, &CollectionListItemDTO{
+				CollectionID: uuid.String(),
+				Name:         item.Name,
+				Rarity:       item.Rarity,
+				HasItem:      hasItem,
+			})
+			break
+		}
 	}
 
 	return res, nil
