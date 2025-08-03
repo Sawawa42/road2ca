@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"math/rand"
 	"road2ca/internal/entity"
@@ -31,6 +32,8 @@ type GachaServiceProps struct {
 	TotalWeight int
 	RandGen     *rand.Rand
 }
+
+var ErrNotEnoughCoins = errors.New("not enough coins")
 
 type GachaService interface {
 	DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error)
@@ -85,7 +88,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	}
 
 	if user.Coin < setting.GachaCoinConsumption*times {
-		return nil, fmt.Errorf("not enough coins")
+		return nil, ErrNotEnoughCoins
 	}
 
 	// アイテムをキャッシュから取得
