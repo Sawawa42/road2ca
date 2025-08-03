@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
+	"math"
 )
 
 type GameHandler interface {
@@ -35,8 +36,8 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 		return
 	}
 
-	if req.Score < 0 {
-		c.Error(fmt.Errorf("score must be non-negative"))
+	if req.Score < 0 || req.Score > math.MaxInt32 {
+		c.Error(fmt.Errorf("score must be between 0 and %d", math.MaxInt32))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
