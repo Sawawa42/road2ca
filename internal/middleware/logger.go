@@ -95,7 +95,19 @@ func (l *logger) SettingLogger(c *minigin.Context) {
 		accessArgs[i] = attr
 	}
 
-	l.accessLogger.Info("access", accessArgs...)
+	if statusCode >= 100 && statusCode < 200 {
+		l.accessLogger.Info("informational", accessArgs...)
+	} else if statusCode >= 200 && statusCode < 300 {
+		l.accessLogger.Info("access", accessArgs...)
+	} else if statusCode >= 300 && statusCode < 400 {
+		l.accessLogger.Info("redirection", accessArgs...)
+	} else if statusCode >= 400 && statusCode < 500 {
+		l.accessLogger.Warn("client error", accessArgs...)
+	} else if statusCode >= 500 && statusCode < 600 {
+		l.accessLogger.Error("server error", accessArgs...)
+	} else {
+		l.accessLogger.Error("unknown status", accessArgs...)
+	}
 
 	if len(c.Errors) > 0 {
 		errorAttr := []slog.Attr{
