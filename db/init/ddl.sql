@@ -5,7 +5,7 @@ SET CHARSET utf8mb4;
 
 -- 設定情報を格納するテーブル
 CREATE TABLE IF NOT EXISTS `road2ca`.`settings` (
-    `id` BINARY(16) NOT NULL,
+    `id` INT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(128) NOT NULL,
     `gachaCoinConsumption` INT NOT NULL DEFAULT 0,
     `drawGachaMaxTimes` INT NOT NULL DEFAULT 0,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `road2ca`.`users` (
 
 -- アイテム情報を格納するテーブル
 CREATE TABLE IF NOT EXISTS `road2ca`.`items` (
-    `id` BINARY(16) NOT NULL,
+    `id` INT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(128) NOT NULL,
     `rarity` TINYINT NOT NULL DEFAULT 0,
     `weight` INT NOT NULL DEFAULT 0,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `road2ca`.`items` (
 CREATE TABLE IF NOT EXISTS `road2ca`.`collections` (
     `id` BINARY(16) NOT NULL,
     `userId` BINARY(16) NOT NULL,
-    `itemId` BINARY(16) NOT NULL,
+    `itemId` INT NOT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`userId`) REFERENCES `road2ca`.`users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (`itemId`) REFERENCES `road2ca`.`items`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
