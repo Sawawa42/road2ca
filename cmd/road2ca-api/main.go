@@ -82,7 +82,11 @@ func initMySQL() *sql.DB {
 
 // initRedis Redis接続の初期化
 func initRedis() *redis.Client {
-	addr := "localhost:6379"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+	addr := os.Getenv("REDIS_ADDR")
 	rdb := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})
