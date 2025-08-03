@@ -36,7 +36,15 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 		return
 	}
 
-	if req.Score < 0 || req.Score > math.MaxInt32 {
+	if req.Score == nil {
+		c.Error(fmt.Errorf("score is required"))
+		c.JSON(http.StatusBadRequest, minigin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	if *req.Score < 0 || *req.Score > math.MaxInt32 {
 		c.Error(fmt.Errorf("score must be between 0 and %d", math.MaxInt32))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
@@ -45,7 +53,7 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	}
 
 	// ゲーム終了処理を実行
-	res, err := h.gameService.FinalizeGame(c, req.Score)
+	res, err := h.gameService.FinalizeGame(c, *req.Score)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusInternalServerError, minigin.H{

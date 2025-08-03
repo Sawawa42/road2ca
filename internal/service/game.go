@@ -8,7 +8,7 @@ import (
 )
 
 type GameFinishRequestDTO struct {
-	Score int `json:"score"`
+	Score *int `json:"score"`
 }
 
 type GameFinishResponseDTO struct {
