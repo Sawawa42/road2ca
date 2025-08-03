@@ -55,6 +55,10 @@ func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
 		return nil, fmt.Errorf("failed to get rankings in range %d-%d: %w", start, end, err)
 	}
 
+	if len(rankings) == 0 {
+		return []*RankingItemDTO{}, nil
+	}
+
 	var result []*RankingItemDTO
 	for _, r := range rankings {
 		user, err := s.userRepo.FindByID(r.UserID)
