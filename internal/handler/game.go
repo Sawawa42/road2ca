@@ -37,7 +37,7 @@ func (h *gameHandler) HandleGameFinish(c *minigin.Context) {
 	}
 
 	if req.Score < 0 || req.Score > math.MaxInt32 {
-		c.Error(fmt.Errorf("score must be non-negative and less than or equal to %d", math.MaxInt32))
+		c.Error(fmt.Errorf("score must be between 0 and %d", math.MaxInt32))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid request body",
 		})
