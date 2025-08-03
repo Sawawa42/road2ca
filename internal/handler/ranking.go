@@ -33,7 +33,7 @@ func (h *rankingHandler) HandleGetRankingList(c *minigin.Context) {
 		return
 	}
 
-	if start <= 0 {
+	if start < 1 {
 		c.Error(fmt.Errorf("invalid input"))
 		c.JSON(http.StatusBadRequest, minigin.H{
 			"error": "Invalid input",
