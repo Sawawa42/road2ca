@@ -123,24 +123,24 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var hasItemsMap = make(map[uuid.UUID]bool)
+	var hasItemsMap = make(map[int]bool)
 	for _, collection := range collections {
-		uuid, err := uuid.FromBytes(collection.ItemID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
-		}
-		hasItemsMap[uuid] = true
+		hasItemsMap[collection.ItemID] = true
 	}
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaItemDTO                    // 結果を格納するスライス
 	for _, item := range pickedItems {
-		uuid, err := uuid.FromBytes(item.ID)
+		uuid, err := uuid.NewV7()
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+			return nil, err
+		}
+		uuidBytes, err := uuid.MarshalBinary()
+		if err != nil {
+			return nil, err
 		}
 
-		isNew := !hasItemsMap[uuid]
+		isNew := !hasItemsMap[item.ID]
 		results = append(results, GachaItemDTO{
 			CollectionID: uuid.String(),
 			Name:         item.Name,
@@ -149,6 +149,7 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		})
 		if isNew {
 			insertNewCollections = append(insertNewCollections, &entity.Collection{
+				ID:     uuidBytes,
 				UserID: user.ID,
 				ItemID: item.ID,
 			})
