@@ -158,6 +158,16 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		}
 	}
 
+	// 重複を排除
+	uniqueCollections := make(map[int]*entity.Collection)
+	for _, collection := range insertNewCollections {
+		uniqueCollections[collection.ItemID] = collection
+	}
+	insertNewCollections = make([]*entity.Collection, 0, len(uniqueCollections))
+	for _, collection := range uniqueCollections {
+		insertNewCollections = append(insertNewCollections, collection)
+	}
+
 	// トランザクション開始
 	tx, err := s.db.Begin()
 	if err != nil {
