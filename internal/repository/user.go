@@ -56,7 +56,7 @@ func (r *userRepo) FindByToken(token string) (*entity.User, error) {
 
 func (r *userRepo) FindByIDs(ids [][]byte) ([]*entity.User, error) {
 	if len(ids) == 0 {
-		return nil, nil
+		return []*entity.User{}, nil
 	}
 
 	query := "SELECT id, name, highscore, coin, token FROM users WHERE id IN (?" + strings.Repeat(",?", len(ids)-1) + ")"
