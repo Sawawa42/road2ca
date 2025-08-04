@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"road2ca/internal/repository"
-	"road2ca/internal/entity"
 	"github.com/google/uuid"
+	"road2ca/internal/entity"
+	"road2ca/internal/repository"
 )
 
 type GetRankingListResponseDTO struct {

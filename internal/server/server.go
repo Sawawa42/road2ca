@@ -40,7 +40,6 @@ func Serve(addr string, h *handler.Handler, m *middleware.Middleware) {
 		authGroup.POST("/gacha/draw", h.Gacha.HandleGachaDraw)
 	}
 
-
 	// サーバを起動
 	log.Println("Server running...")
 	if err := router.Run(addr); err != nil {
