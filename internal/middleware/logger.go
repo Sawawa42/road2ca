@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"log/slog"
-	"os"
 	"road2ca/internal/entity"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
@@ -15,34 +14,29 @@ import (
 	"github.com/google/uuid"
 )
 
-type Logger interface {
+type LoggerMiddleware interface {
 	SettingLogger(c *minigin.Context)
 }
 
-type logger struct {
+type loggerMiddleware struct {
 	accessLogger *slog.Logger
 	errorLogger  *slog.Logger
 }
 
-func NewLogger() (Logger, error) {
-	accessFile, err := os.OpenFile("access.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		return nil, err
+type SlogInstances struct {
+	AccessLogger *slog.Logger
+	ErrorLogger  *slog.Logger
+}
+
+func NewLoggerMiddleware(slogs *SlogInstances) LoggerMiddleware {
+	return &loggerMiddleware{
+		accessLogger: slogs.AccessLogger,
+		errorLogger:  slogs.ErrorLogger,
 	}
-	errorFile, err := os.OpenFile("error.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		return nil, err
-	}
-	accessLogger := slog.New(slog.NewJSONHandler(accessFile, nil))
-	errorLogger := slog.New(slog.NewJSONHandler(errorFile, nil))
-	return &logger{
-		accessLogger: accessLogger,
-		errorLogger:  errorLogger,
-	}, nil
 }
 
 // SettingLogger ログを出力するミドルウェア
-func (l *logger) SettingLogger(c *minigin.Context) {
+func (l *loggerMiddleware) SettingLogger(c *minigin.Context) {
 	startTime := time.Now()
 
 	// リクエストボディは一度しか読み取れないため、後続で再度読み取れるようにする

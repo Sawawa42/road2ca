@@ -28,6 +28,11 @@ func main() {
 	rdb := server.InitRedis()
 	defer rdb.Close()
 
+	slogs, err := server.NewSlogInstances()
+	if err != nil {
+		log.Fatalf("Failed to initialize slog instances: %v", err)
+	}
+
 	// Ctrl+C(SIGINT)で終了した際の処理
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt, syscall.SIGTERM)
@@ -42,10 +47,10 @@ func main() {
 		os.Exit(0)
 	}()
 
-	h, m, l, err := server.SetupServer(db, rdb)
+	h, m, err := server.SetupServer(db, rdb, slogs)
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %+v", err)
 	}
 
-	server.Serve(addr, h, m, l)
+	server.Serve(addr, h, m)
 }

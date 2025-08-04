@@ -17,7 +17,26 @@ import (
 	"time"
 	"road2ca/internal/entity"
 	"math"
+	"log/slog"
 )
+
+// NewSlogInstances ログインスタンスを生成する
+func NewSlogInstances() (*middleware.SlogInstances, error) {
+	accessFile, err := os.OpenFile("access.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return nil, err
+	}
+	errorFile, err := os.OpenFile("error.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return nil, err
+	}
+	accessLogger := slog.New(slog.NewJSONHandler(accessFile, nil))
+	errorLogger := slog.New(slog.NewJSONHandler(errorFile, nil))
+	return &middleware.SlogInstances{
+		AccessLogger: accessLogger,
+		ErrorLogger:  errorLogger,
+	}, nil
+}
 
 // InitMySQL MySQL接続の初期化
 func InitMySQL() *sql.DB {
@@ -56,56 +75,52 @@ func InitRedis() *redis.Client {
 }
 
 // SetupServer サーバーの初期設定
-func SetupServer(db *sql.DB, rdb *redis.Client) (*handler.Handler, *middleware.Middleware, middleware.Logger, error) {
+func SetupServer(db *sql.DB, rdb *redis.Client, slogs *middleware.SlogInstances) (*handler.Handler, *middleware.Middleware, error) {
 	// 依存関係の注入
-	r, s, h, m := injectDependencies(db, rdb)
-	l, err := middleware.NewLogger()
-	if err != nil {
-		return nil, nil, nil, err
-	}
+	r, s, h, m := injectDependencies(db, rdb, slogs)
 
 	// MySQLから設定を取得
 	setting, err := r.MySQLSetting.FindLatest()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// MySQLからアイテムを取得
 	items, err := r.MySQLItem.Find()
 	if err != nil || len(items) == 0 {
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
-		return nil, nil, nil, fmt.Errorf("no items found")
+		return nil, nil, fmt.Errorf("no items found")
 	}
 
 	// Redisに設定をキャッシュ
 	if err := r.RedisSetting.Save(setting); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// アイテムに重みを設定
 	if err := setWeightToItems(items, setting); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// Redisにアイテムをキャッシュ
 	if err := r.RedisItem.Save(items); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	// MySQLに重みを更新したアイテムを保存
 	if err := r.MySQLItem.Save(items); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	props, err := loadGachaServiceProps(items)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	s.Gacha.SetGachaProps(props)
 
-	return h, m, l, nil
+	return h, m, nil
 }
 
 func loadGachaServiceProps(items []*entity.Item) (*service.GachaServiceProps, error) {
@@ -126,7 +141,7 @@ func loadGachaServiceProps(items []*entity.Item) (*service.GachaServiceProps, er
 }
 
 // injectDependencies 依存関係の注入
-func injectDependencies(db *sql.DB, rdb *redis.Client) (
+func injectDependencies(db *sql.DB, rdb *redis.Client, slogs *middleware.SlogInstances) (
 	*repository.Repositories,
 	*service.Services,
 	*handler.Handler,
@@ -134,7 +149,7 @@ func injectDependencies(db *sql.DB, rdb *redis.Client) (
 	r := repository.New(db, rdb)
 	s := service.New(r)
 	h := handler.New(s)
-	m := middleware.New(s)
+	m := middleware.New(s, slogs)
 	return r, s, h, m
 }
 
