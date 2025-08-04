@@ -28,7 +28,7 @@ type GachaItemDTO struct {
 	IsNew        bool   `json:"isNew"`
 }
 
-type GachaServiceProps struct {
+type GachaProperties struct {
 	TotalWeight int
 	RandGen     *rand.Rand
 }
@@ -37,7 +37,6 @@ var ErrNotEnoughCoins = errors.New("not enough coins")
 
 type GachaService interface {
 	DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error)
-	SetGachaProps(props *GachaServiceProps)
 }
 
 type gachaService struct {
@@ -60,6 +59,7 @@ func NewGachaService(
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
 	db *sql.DB,
+	props *GachaProperties,
 ) GachaService {
 	return &gachaService{
 		mysqlItemRepo:    mysqlItemRepo,
@@ -69,6 +69,8 @@ func NewGachaService(
 		collectionRepo:   collectionRepo,
 		userRepo:         userRepo,
 		db:               db,
+		totalWeight:      props.TotalWeight,
+		randGen:          props.RandGen,
 	}
 }
 
@@ -179,9 +181,4 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	return &DrawGachaResponseDTO{
 		Results: results,
 	}, nil
-}
-
-func (s *gachaService) SetGachaProps(props *GachaServiceProps) {
-	s.totalWeight = props.TotalWeight
-	s.randGen = props.RandGen
 }

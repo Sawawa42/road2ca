@@ -76,8 +76,7 @@ func InitRedis() *redis.Client {
 
 // SetupServer サーバーの初期設定
 func SetupServer(db *sql.DB, rdb *redis.Client, slogs *middleware.SlogInstances) (*handler.Handler, *middleware.Middleware, error) {
-	// 依存関係の注入
-	r, s, h, m := injectDependencies(db, rdb, slogs)
+	r := repository.New(db, rdb)
 
 	// MySQLから設定を取得
 	setting, err := r.MySQLSetting.FindLatest()
@@ -114,16 +113,19 @@ func SetupServer(db *sql.DB, rdb *redis.Client, slogs *middleware.SlogInstances)
 		return nil, nil, err
 	}
 
-	props, err := loadGachaServiceProps(items)
+	props, err := createGachaProps(items)
 	if err != nil {
 		return nil, nil, err
 	}
-	s.Gacha.SetGachaProps(props)
+
+	s := service.New(r, props)
+	h := handler.New(s)
+	m := middleware.New(s, slogs)
 
 	return h, m, nil
 }
 
-func loadGachaServiceProps(items []*entity.Item) (*service.GachaServiceProps, error) {
+func createGachaProps(items []*entity.Item) (*service.GachaProperties, error) {
 	totalWeight := 0
 	for _, item := range items {
 		if item.Weight < 1 {
@@ -134,23 +136,10 @@ func loadGachaServiceProps(items []*entity.Item) (*service.GachaServiceProps, er
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	return &service.GachaServiceProps{
+	return &service.GachaProperties{
 		TotalWeight: totalWeight,
 		RandGen:     r,
 	}, nil
-}
-
-// injectDependencies 依存関係の注入
-func injectDependencies(db *sql.DB, rdb *redis.Client, slogs *middleware.SlogInstances) (
-	*repository.Repositories,
-	*service.Services,
-	*handler.Handler,
-	*middleware.Middleware) {
-	r := repository.New(db, rdb)
-	s := service.New(r)
-	h := handler.New(s)
-	m := middleware.New(s, slogs)
-	return r, s, h, m
 }
 
 // setWeightToItems アイテムの重みを設定する
