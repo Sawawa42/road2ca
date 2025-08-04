@@ -87,7 +87,7 @@ func (s *rankingService) GetRanking(start int) ([]*RankingItemDTO, error) {
 		}
 		user, ok := userMap[uuid]
 		if !ok {
-			return nil, fmt.Errorf("user with ID %s not found in user map", uuid.String())
+			continue // ユーザーが見つからない場合(削除等の要因)を想定してスキップ
 		}
 
 		result = append(result, &RankingItemDTO{
