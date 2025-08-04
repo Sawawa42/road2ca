@@ -125,10 +125,13 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var hasItemsMap = make(map[int]bool)
+	hasItemsMap := make(map[int]bool)
 	for _, collection := range collections {
 		hasItemsMap[collection.ItemID] = true
 	}
+
+	// 今回のガチャで新たに追加されるアイテムの重複を排除
+	alreadyAdded := make(map[int]bool)
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaItemDTO                    // 結果を格納するスライス
@@ -149,23 +152,14 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 			Rarity:       item.Rarity,
 			IsNew:        isNew,
 		})
-		if isNew {
+		if isNew && !alreadyAdded[item.ID] {
 			insertNewCollections = append(insertNewCollections, &entity.Collection{
 				ID:     uuidBytes,
 				UserID: user.ID,
 				ItemID: item.ID,
 			})
+			alreadyAdded[item.ID] = true
 		}
-	}
-
-	// 重複を排除
-	uniqueCollections := make(map[int]*entity.Collection)
-	for _, collection := range insertNewCollections {
-		uniqueCollections[collection.ItemID] = collection
-	}
-	insertNewCollections = make([]*entity.Collection, 0, len(uniqueCollections))
-	for _, collection := range uniqueCollections {
-		insertNewCollections = append(insertNewCollections, collection)
 	}
 
 	// トランザクション開始
