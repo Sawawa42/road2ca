@@ -1,3 +1,3 @@
 # minigin
 
-[Gin Web Framework](github.com/gin-gonic/gin)ライクなルーティングをしたくなったので作ったもの
+[Gin Web Framework](https://github.com/gin-gonic/gin)ライクなルーティングをしたくなったので作ったもの
