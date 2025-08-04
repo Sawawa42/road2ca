@@ -32,11 +32,7 @@ func (r *mysqlItemRepo) Save(items []*entity.Item) error {
 	var args []interface{}
 	for _, item := range items {
 		placeholders = append(placeholders, "(?, ?, ?, ?)")
-		uuidBytes, err := GetUUIDv7Bytes()
-		if err != nil {
-			return err
-		}
-		args = append(args, uuidBytes, item.Name, item.Rarity, item.Weight)
+		args = append(args, item.ID, item.Name, item.Rarity, item.Weight)
 	}
 	query += strings.Join(placeholders, ", ")
 	query += " ON DUPLICATE KEY UPDATE name = VALUES(name), rarity = VALUES(rarity), weight = VALUES(weight)"

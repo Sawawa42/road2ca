@@ -5,9 +5,8 @@ import (
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
-
-	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"sort"
 )
 
 type CollectionListResponseDTO struct {
@@ -15,7 +14,7 @@ type CollectionListResponseDTO struct {
 }
 
 type CollectionListItemDTO struct {
-	CollectionID string `json:"collectionID"`
+	CollectionID int    `json:"collectionID"`
 	Name         string `json:"name"`
 	Rarity       int    `json:"rarity"`
 	HasItem      bool   `json:"hasItem"`
@@ -67,30 +66,26 @@ func (s *collectionService) GetCollectionList(c *minigin.Context) ([]*Collection
 	}
 
 	// 特定のアイテムIDがユーザのコレクションに含まれているかをチェックするためのマップを作成
-	collectionItemMap := make(map[uuid.UUID]bool)
+	collectionItemMap := make(map[int]bool)
 	for _, collection := range collections {
-		uuid, err := uuid.FromBytes(collection.ItemID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
-		}
-		collectionItemMap[uuid] = true
+		collectionItemMap[collection.ItemID] = true
 	}
 
-	res := make([]*CollectionListItemDTO, 0, len(items))
+	list := make([]*CollectionListItemDTO, 0, len(items))
 	for _, item := range items {
-		uuid, err := uuid.FromBytes(item.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
-		}
 		// アイテム所持を判定
-		hasItem := collectionItemMap[uuid]
-		res = append(res, &CollectionListItemDTO{
-			CollectionID: uuid.String(),
+		hasItem := collectionItemMap[item.ID]
+		list = append(list, &CollectionListItemDTO{
+			CollectionID: item.ID,
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			HasItem:      hasItem,
 		})
 	}
 
-	return res, nil
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].CollectionID < list[j].CollectionID
+	})
+
+	return list, nil
 }

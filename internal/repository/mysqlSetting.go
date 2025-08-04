@@ -6,8 +6,6 @@ import (
 )
 
 type MySQLSettingRepo interface {
-	// Save SettingをDBに保存する
-	Save(setting *entity.Setting) error
 	// FindLatest 最新のsettingを取得する
 	FindLatest() (*entity.Setting, error)
 	// Truncate テーブルを空にする
@@ -22,22 +20,6 @@ func NewMySQLSettingRepo(db *sql.DB) MySQLSettingRepo {
 	return &mysqlSettingRepo{
 		db: db,
 	}
-}
-
-// Save SettingをDBに保存する
-func (r *mysqlSettingRepo) Save(setting *entity.Setting) error {
-	query := `
-	INSERT INTO settings (id, name, gachaCoinConsumption, drawGachaMaxTimes, getRankingLimit, rewardCoin, rarity3Ratio, rarity2Ratio, rarity1Ratio)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	uuidBytes, err := GetUUIDv7Bytes()
-	if err != nil {
-		return err
-	}
-	_, err = r.db.Exec(query, uuidBytes, setting.Name, setting.GachaCoinConsumption, setting.DrawGachaMaxTimes, setting.GetRankingLimit, setting.RewardCoin, setting.Rarity3Ratio, setting.Rarity2Ratio, setting.Rarity1Ratio)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // FindLatest 最新のsettingを取得する

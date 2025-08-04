@@ -28,7 +28,7 @@ type GachaItemDTO struct {
 	IsNew        bool   `json:"isNew"`
 }
 
-type GachaServiceProps struct {
+type GachaProperties struct {
 	TotalWeight int
 	RandGen     *rand.Rand
 }
@@ -37,7 +37,6 @@ var ErrNotEnoughCoins = errors.New("not enough coins")
 
 type GachaService interface {
 	DrawGacha(c *minigin.Context, times int) (*DrawGachaResponseDTO, error)
-	SetGachaProps(props *GachaServiceProps)
 }
 
 type gachaService struct {
@@ -60,6 +59,7 @@ func NewGachaService(
 	collectionRepo repository.CollectionRepo,
 	userRepo repository.UserRepo,
 	db *sql.DB,
+	props *GachaProperties,
 ) GachaService {
 	return &gachaService{
 		mysqlItemRepo:    mysqlItemRepo,
@@ -69,6 +69,8 @@ func NewGachaService(
 		collectionRepo:   collectionRepo,
 		userRepo:         userRepo,
 		db:               db,
+		totalWeight:      props.TotalWeight,
+		randGen:          props.RandGen,
 	}
 }
 
@@ -123,35 +125,40 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 		return nil, fmt.Errorf("failed to get collections: %w", err)
 	}
 
-	var hasItemsMap = make(map[uuid.UUID]bool)
+	hasItemsMap := make(map[int]bool)
 	for _, collection := range collections {
-		uuid, err := uuid.FromBytes(collection.ItemID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
-		}
-		hasItemsMap[uuid] = true
+		hasItemsMap[collection.ItemID] = true
 	}
+
+	// 今回のガチャで新たに追加されるアイテムの重複を排除
+	alreadyAdded := make(map[int]bool)
 
 	var insertNewCollections []*entity.Collection // 新規コレクションを格納するスライス
 	var results []GachaItemDTO                    // 結果を格納するスライス
 	for _, item := range pickedItems {
-		uuid, err := uuid.FromBytes(item.ID)
+		uuid, err := uuid.NewV7()
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse item ID: %w", err)
+			return nil, err
+		}
+		uuidBytes, err := uuid.MarshalBinary()
+		if err != nil {
+			return nil, err
 		}
 
-		isNew := !hasItemsMap[uuid]
+		isNew := !hasItemsMap[item.ID]
 		results = append(results, GachaItemDTO{
 			CollectionID: uuid.String(),
 			Name:         item.Name,
 			Rarity:       item.Rarity,
 			IsNew:        isNew,
 		})
-		if isNew {
+		if isNew && !alreadyAdded[item.ID] {
 			insertNewCollections = append(insertNewCollections, &entity.Collection{
+				ID:     uuidBytes,
 				UserID: user.ID,
 				ItemID: item.ID,
 			})
+			alreadyAdded[item.ID] = true
 		}
 	}
 
@@ -178,9 +185,4 @@ func (s *gachaService) DrawGacha(c *minigin.Context, times int) (*DrawGachaRespo
 	return &DrawGachaResponseDTO{
 		Results: results,
 	}, nil
-}
-
-func (s *gachaService) SetGachaProps(props *GachaServiceProps) {
-	s.totalWeight = props.TotalWeight
-	s.randGen = props.RandGen
 }
