@@ -24,7 +24,7 @@ func New(repo *repository.Repositories) *Services {
 	return &Services{
 		User:       NewUserService(repo.User),
 		Auth:       NewAuthService(repo.User),
-		Item:       NewItemService(repo.MySQLItem, repo.RedisItem),
+		Item:       NewItemService(),
 		Collection: NewCollectionService(repo.Collection, repo.MySQLItem, repo.RedisItem),
 		Ranking:    NewRankingService(repo.User, repo.Ranking, repo.MySQLSetting, repo.RedisSetting),
 		Game:       NewGameService(repo.User, repo.Ranking, repo.MySQLSetting, repo.RedisSetting),

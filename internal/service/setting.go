@@ -15,7 +15,6 @@ type GetSettingResponseDTO struct {
 }
 
 type SettingService interface {
-	SetSettingToCache() error
 	GetSettings() (*GetSettingResponseDTO, error)
 }
 
@@ -29,19 +28,6 @@ func NewSettingService(mysqlSettingRepo repository.MySQLSettingRepo, redisSettin
 		mysqlSettingRepo: mysqlSettingRepo,
 		redisSettingRepo: redisSettingRepo,
 	}
-}
-
-func (s *settingService) SetSettingToCache() error {
-	setting, err := repository.FindSetting(s.mysqlSettingRepo, s.redisSettingRepo)
-	if err != nil {
-		return err
-	}
-
-	if err := s.redisSettingRepo.Save(setting); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *settingService) GetSettings() (*GetSettingResponseDTO, error) {

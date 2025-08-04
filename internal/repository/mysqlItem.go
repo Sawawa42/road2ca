@@ -3,9 +3,12 @@ package repository
 import (
 	"database/sql"
 	"road2ca/internal/entity"
+	"strings"
 )
 
 type MySQLItemRepo interface {
+	// Save ItemsをDBに保存する
+	Save(items []*entity.Item) error
 	// Find 全てのItemsを取得する
 	Find() ([]*entity.Item, error)
 	// Truncate テーブルを空にする
@@ -20,6 +23,24 @@ func NewMySQLItemRepo(db *sql.DB) MySQLItemRepo {
 	return &mysqlItemRepo{
 		db: db,
 	}
+}
+
+// Save ItemsをDBに保存する
+func (r *mysqlItemRepo) Save(items []*entity.Item) error {
+	query := "INSERT INTO items (id, name, rarity, weight) VALUES "
+	var placeholders []string
+	var args []interface{}
+	for _, item := range items {
+		placeholders = append(placeholders, "(?, ?, ?, ?)")
+		args = append(args, item.ID, item.Name, item.Rarity, item.Weight)
+	}
+	query += strings.Join(placeholders, ", ")
+	query += " ON DUPLICATE KEY UPDATE name = VALUES(name), rarity = VALUES(rarity), weight = VALUES(weight)"
+	_, err := r.db.Exec(query, args...)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Find 全てのItemsを取得する
