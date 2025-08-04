@@ -8,16 +8,16 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"log"
+	"log/slog"
+	"math"
 	"math/rand"
 	"os"
+	"road2ca/internal/entity"
 	"road2ca/internal/handler"
 	"road2ca/internal/middleware"
 	"road2ca/internal/repository"
 	"road2ca/internal/service"
 	"time"
-	"road2ca/internal/entity"
-	"math"
-	"log/slog"
 )
 
 // NewSlogInstances ログインスタンスを生成する

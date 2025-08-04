@@ -2,10 +2,10 @@ package service
 
 import (
 	"fmt"
+	"github.com/redis/go-redis/v9"
 	"road2ca/internal/entity"
 	"road2ca/internal/repository"
 	"road2ca/pkg/minigin"
-	"github.com/redis/go-redis/v9"
 	"sort"
 )
 

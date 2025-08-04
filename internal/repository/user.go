@@ -3,13 +3,14 @@ package repository
 import (
 	"database/sql"
 	"road2ca/internal/entity"
+	"strings"
 )
 
 type UserRepo interface {
 	Save(user *entity.User) error
 	SaveTx(tx *sql.Tx, user *entity.User) error
 	FindByToken(token string) (*entity.User, error)
-	FindByID(id []byte) (*entity.User, error)
+	FindByIDs(ids [][]byte) ([]*entity.User, error)
 }
 
 type userRepo struct {
@@ -53,13 +54,30 @@ func (r *userRepo) FindByToken(token string) (*entity.User, error) {
 	return user, nil
 }
 
-func (r *userRepo) FindByID(id []byte) (*entity.User, error) {
-	query := "SELECT id, name, highscore, coin, token FROM users WHERE id = ?"
-	row := r.db.QueryRow(query, id)
-	user := &entity.User{}
-	err := row.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin, &user.Token)
+func (r *userRepo) FindByIDs(ids [][]byte) ([]*entity.User, error) {
+	if len(ids) == 0 {
+		return []*entity.User{}, nil
+	}
+
+	query := "SELECT id, name, highscore, coin, token FROM users WHERE id IN (?" + strings.Repeat(",?", len(ids)-1) + ")"
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	rows, err := r.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	defer rows.Close()
+
+	var users []*entity.User
+	for rows.Next() {
+		user := &entity.User{}
+		if err := rows.Scan(&user.ID, &user.Name, &user.HighScore, &user.Coin, &user.Token); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }

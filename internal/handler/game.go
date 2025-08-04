@@ -3,10 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"road2ca/internal/service"
 	"road2ca/pkg/minigin"
-	"math"
 )
 
 type GameHandler interface {

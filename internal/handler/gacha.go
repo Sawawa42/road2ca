@@ -6,8 +6,8 @@ import (
 	"road2ca/pkg/minigin"
 
 	"encoding/json"
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 type GachaHandler interface {

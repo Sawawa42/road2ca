@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"road2ca/internal/entity"
 	"github.com/redis/go-redis/v9"
+	"road2ca/internal/entity"
 )
 
 type RedisItemRepo interface {
