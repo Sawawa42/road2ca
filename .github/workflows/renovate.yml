@@ -8,10 +8,10 @@ on:
 jobs:
   renovate:
     runs-on: ubuntu-latest
-    # permissions:
-    #   contents: write      # ブランチ作成・更新のため
-    #   pull-requests: write # プルリクエスト作成のため
-    #   issues: write        # Dependency Dashboard (Issue)作成・更新のため
+    permissions:
+      contents: write      # ブランチ作成・更新のため
+      pull-requests: write # プルリクエスト作成のため
+      issues: write        # Dependency Dashboard (Issue)作成・更新のため
     steps:
       - name: Checkout
         uses: actions/checkout@v4
