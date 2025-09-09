@@ -23,4 +23,5 @@ jobs:
           LOG_LEVEL: debug
           RENOVATE_REPOSITORIES: 'Sawawa42/road2ca'
           RENOVATE_USERNAME: 'renovate[bot]'
+          RENOVATE_GIT_AUTHOR: 'renovatebot <renovate[bot]@users.noreply.github.enterprise.com>'
           RENOVATE_PLATFORM: 'github'
