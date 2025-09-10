@@ -15,7 +15,7 @@ on:
 
 env:
   cache_archive: renovate_cache.tar.gz
-  cache_dir: /tmp/renovate/cache/renovate/repository
+  cache_dir: /tmp/renovate/cache/renovate/renovate-cache-v1
   cache_key: renovate-cache
   
 jobs:
@@ -60,7 +60,7 @@ jobs:
           RENOVATE_REPOSITORY_CACHE: ${{ github.event.inputs.repoCache || 'enabled' }}
       - name: Compress renovate cache
         run: |
-          ls -laR /tmp/renovate
+          ls $cache_dir
           # The -C is important -- otherwise we end up extracting the files with
           # their full path, ultimately leading to a nested directory situation.
           # To solve *that*, we'd have to extract to root (/), which isn't safe.
