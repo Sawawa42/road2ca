@@ -2,7 +2,7 @@ module road2ca
 
 go 1.21.0
 
-toolchain go1.23.6
+toolchain go1.25.1
 
 require (
 	github.com/go-sql-driver/mysql v1.9.3
