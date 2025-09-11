@@ -72,3 +72,6 @@ jobs:
           path: ${{ env.cache_archive }}
           # 実行ごとに更新するため、保持期間を最低の1日に設定する
           retention-days: 1
+      - name: Check /tmp/renovate
+        run: |
+          find /tmp/renovate -maxdepth 4 -ls
