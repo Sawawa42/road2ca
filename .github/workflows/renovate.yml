@@ -14,9 +14,9 @@ on:
           - disabled # キャッシュ読み込み、書き出し共に無効化
           - reset # キャッシュ読み込みを無効化、書き出しは有効化
 
-permissions: 
-  actions: write # 既存のキャッシュを削除するために必要
-  contents: read
+# permissions: 
+#   actions: write # 既存のキャッシュを削除するために必要
+#   contents: read
 
 env:
   cache_dir: /tmp/renovate/cache/renovate/repository
