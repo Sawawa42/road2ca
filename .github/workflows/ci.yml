@@ -16,7 +16,7 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v4
               with:
-                  go-version: '1.21'
+                  go-version: '1.25'
             - name: Format code
               run: go fmt ./...
     build:
@@ -26,6 +26,6 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v4
               with:
-                  go-version: '1.21'
+                  go-version: '1.25'
             - name: Build code
               run: go build -v ./...
