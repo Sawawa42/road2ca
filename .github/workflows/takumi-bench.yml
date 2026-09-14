@@ -1,0 +1,98 @@
+name: Takumi Guard benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: 'hyperfineの実行回数'
+        default: '10'
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: false # go modキャッシュを無効化
+
+      - name: Install hyperfine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y hyperfine jq
+
+      - name: Environment info
+        run: |
+          go version
+          go env GOPROXY GOMODCACHE
+          echo "deps: $(go list -m all | wc -l)"
+          curl -s https://ipinfo.io | jq -r '.region, .country' || true
+
+      - name: Sanity check
+        run: |
+          GOPROXY=https://proxy.golang.org go mod download && echo OK-upstream
+          go clean -modcache
+          GOPROXY=https://golang.flatt.tech go mod download && echo OK-takumi
+          go clean -modcache
+
+      - name: Bench - go list -m all
+        run: |
+          hyperfine --warmup 1 --runs ${{ inputs.runs }} \
+            --prepare 'go clean -modcache' \
+            --command-name 'upstream' 'GOPROXY=https://proxy.golang.org go list -m all > /dev/null' \
+            --command-name 'takumi'   'GOPROXY=https://golang.flatt.tech go list -m all > /dev/null' \
+            --export-json bench-list.json \
+            --export-markdown bench-list.md
+
+      - name: Bench - go mod download
+        run: |
+          hyperfine --warmup 1 --runs ${{ inputs.runs }} \
+            --prepare 'go clean -modcache' \
+            --command-name 'upstream' 'GOPROXY=https://proxy.golang.org go mod download' \
+            --command-name 'takumi'   'GOPROXY=https://golang.flatt.tech go mod download' \
+            --export-json bench-download.json \
+            --export-markdown bench-download.md
+
+      - name: Bench - reversed order
+        run: |
+          hyperfine --warmup 1 --runs ${{ inputs.runs }} \
+            --prepare 'go clean -modcache' \
+            --command-name 'takumi'   'GOPROXY=https://golang.flatt.tech go mod download' \
+            --command-name 'upstream' 'GOPROXY=https://proxy.golang.org go mod download' \
+            --export-json bench-download-rev.json \
+            --export-markdown bench-download-rev.md
+
+      - name: Bench - warm cache
+        run: |
+          GOPROXY=https://proxy.golang.org go mod download
+          hyperfine --warmup 3 --runs 20 \
+            --command-name 'upstream' 'GOPROXY=https://proxy.golang.org go mod download' \
+            --command-name 'takumi'   'GOPROXY=https://golang.flatt.tech go mod download' \
+            --export-markdown bench-warm.md
+
+      - name: Summary
+        if: always()
+        run: |
+          for f in bench-list bench-download bench-download-rev bench-warm; do
+            [ -f "$f.md" ] || continue
+            echo "## $f" >> $GITHUB_STEP_SUMMARY
+            cat "$f.md" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-results
+          path: bench-*.json
+      - name: Verify blocking works
+        run: |
+          cd $(mktemp -d)
+          go mod init verify-takumi-guard
+          if GOPROXY=https://golang.flatt.tech go get github.com/flatt-security/hola-takumi-go@v0.1.0; then
+            echo "::error::ブロックされなかった"
+            exit 1
+          else
+            echo "期待どおりブロックされた"
+          fi
